@@ -80,7 +80,9 @@ cd ../frontend
 - Install Node dependencies:
 
 npm install
+
 npm install react-router-dom
+
 npm install pdfjs-dist
 
 
