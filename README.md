@@ -87,16 +87,19 @@ npm install
 - Step 1: Start Flask Backend 
 
 cd backend
-source venv/bin/activate   # Activate venv if not active
-flask run
-The API will be available at: http://127.0.0.1:5000
 
--- In another terminal tab
+source venv/bin/activate   # Activate venv if not active
+
+flask run
+
+The API will be available at: http://127.0.0.1:5000
 
 - Step 2: Start React Frontend
 
 Open a new terminal:
+
 cd frontend
+
 npm run dev
 
 - The frontend will be available at: http://localhost:5173
