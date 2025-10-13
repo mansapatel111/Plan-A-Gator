@@ -36,34 +36,35 @@ Make sure you have installed:
 
 
 git clone https://github.com/mansapatel111/Plan-A-Gator.git
+
 cd plan-a-gator
 
 
 ## Backend Setup (Flask)
 
-Navigate to the backend folder:
+- Navigate to the backend folder:
 
 cd backend
 
 
-Create a virtual environment (if not already present):
+- Create a virtual environment (if not already present):
 
 python3 -m venv venv
 
 
-Activate the virtual environment:
+- Activate the virtual environment:
 
-macOS/Linux:
+-- macOS/Linux:
 
 source venv/bin/activate
 
 
-Windows:
+-- Windows:
 
 venv\Scripts\activate
 
 
-Install Python dependencies:
+- Install Python dependencies:
 
 pip install -r requirements.txt
 
@@ -71,54 +72,52 @@ pip install -r requirements.txt
 
 ## Frontend Setup (React + Vite)
 
-Navigate to the frontend folder:
+- Navigate to the frontend folder:
 
 cd ../frontend
 
 
-Install Node dependencies:
+- Install Node dependencies:
 
 npm install
 
 
 ## Running the App Locally
 
-Step 1: Start Flask Backend 
+- Step 1: Start Flask Backend 
 
 cd backend
 source venv/bin/activate   # Activate venv if not active
 flask run
 The API will be available at: http://127.0.0.1:5000
 
-In another terminal tab
+-- In another terminal tab
 
-Step 2: Start React Frontend
+- Step 2: Start React Frontend
 
 Open a new terminal:
 cd frontend
 npm run dev
 
-The frontend will be available at: http://localhost:5173
+- The frontend will be available at: http://localhost:5173
 
-React will call the Flask API at http://127.0.0.1:5000/api/...
+- React will call the Flask API at http://127.0.0.1:5000/api/...
 
 ## Project Structure
-uf-scheduler/
-├── backend/
-│   ├── app.py           # Flask backend entry
-│   ├── requirements.txt # Python dependencies
-│   ├── venv/            # Python virtual environment (ignored)
-│   └── .env             #  backend env
-│
-├── frontend/
-│   ├── src/             # React source files
-│   ├── package.json
-│   ├── vite.config.js
-│   └── .env             #  frontend env
-│
-├── .gitignore
-└── README.md
 
+- `uf-scheduler/`
+  - `backend/`
+    - `app.py` &nbsp;&nbsp;# Flask backend entry
+    - `requirements.txt` &nbsp;&nbsp;# Python dependencies
+    - `venv/` &nbsp;&nbsp;# Python virtual environment 
+    - `.env` &nbsp;&nbsp;# backend env
+  - `frontend/`
+    - `src/` &nbsp;&nbsp;# React source files
+    - `package.json`
+    - `vite.config.js`
+    - `.env` &nbsp;&nbsp;# frontend env
+  - `.gitignore`
+  - `README.md`
 
 ## Notes
 
