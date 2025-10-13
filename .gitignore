@@ -1,0 +1,32 @@
+# =========================
+# Python (Backend)
+# =========================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/                 
+*.sqlite3                # if we use sqltite for local development
+*.log
+
+# =========================
+# Node / React (Frontend)
+# =========================
+frontend/node_modules/
+frontend/dist/            # Vite production build output
+frontend/.DS_Store
+
+# =========================
+# General / macOS / IDE
+# =========================
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# =========================
+# Keeping this commented until everyones done with setup, pls comment after
+# =========================
+# **/.env
