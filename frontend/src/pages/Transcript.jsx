@@ -1,7 +1,7 @@
 import { useState } from "react";
 import * as pdfjsLib from "pdfjs-dist";
 import pdfjsWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
-import "./Transcript.css"; // Import the CSS file
+import "./Transcript.css";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
@@ -11,14 +11,36 @@ export default function Transcript() {
   const [grade, setGrade] = useState("");
   const [college, setCollege] = useState("");
 
-  // PDF upload handler
+  const [errors, setErrors] = useState({
+    grade: "",
+    college: "",
+    file: "",
+  });
+
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
+    setErrors((prev) => ({ ...prev, file: "" }));
   };
 
-  // Parse PDF and extract course codes
   const handleParse = async () => {
-    if (!file) return alert("Please upload a PDF first!");
+    let newErrors = { grade: "", college: "", file: "" };
+    let hasError = false;
+
+    if (!grade) {
+      newErrors.grade = "Please select your grade level.";
+      hasError = true;
+    }
+    if (!college) {
+      newErrors.college = "Please select your college.";
+      hasError = true;
+    }
+    if (!file) {
+      newErrors.file = "Please upload your transcript (PDF).";
+      hasError = true;
+    }
+
+    setErrors(newErrors);
+    if (hasError) return;
 
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
@@ -43,25 +65,40 @@ export default function Transcript() {
 
         {/* Grade Dropdown */}
         <label>Grade Level:</label>
-        <select value={grade} onChange={(e) => setGrade(e.target.value)}>
+        <select
+          value={grade}
+          onChange={(e) => {
+            setGrade(e.target.value);
+            setErrors((prev) => ({ ...prev, grade: "" }));
+          }}
+        >
           <option value="">Select grade</option>
           <option value="Freshman">Freshman</option>
           <option value="Sophomore">Sophomore</option>
           <option value="Junior">Junior</option>
           <option value="Senior">Senior</option>
-          <option value="Graduate">Graduate</option>
         </select>
+        {errors.grade && <p className="error-text">{errors.grade}</p>}
 
         {/* College Dropdown */}
         <label>College:</label>
-        <select value={college} onChange={(e) => setCollege(e.target.value)}>
+        <select
+          value={college}
+          onChange={(e) => {
+            setCollege(e.target.value);
+            setErrors((prev) => ({ ...prev, college: "" }));
+          }}
+        >
           <option value="">Select college</option>
           <option value="CLAS">College of Liberal Arts & Sciences</option>
           <option value="ENG">College of Engineering</option>
         </select>
+        {errors.college && <p className="error-text">{errors.college}</p>}
 
         {/* PDF Upload */}
+        <label>Transcript PDF:</label>
         <input type="file" accept="application/pdf" onChange={handleFileChange} />
+        {errors.file && <p className="error-text">{errors.file}</p>}
 
         {/* Parse Button */}
         <button onClick={handleParse}>Parse Transcript</button>
@@ -77,6 +114,18 @@ export default function Transcript() {
             </ul>
           </>
         )}
+
+        {/* Help Link */}
+        <p className="help-text">
+          Need help getting your transcript PDF?{" "}
+          <a
+            href="https://www.floridashines.org/check-your-progress" 
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Click here
+          </a>
+        </p>
       </div>
     </div>
   );
