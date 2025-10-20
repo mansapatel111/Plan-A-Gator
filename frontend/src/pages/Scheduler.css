@@ -1,0 +1,459 @@
+/* Scheduler.css */
+
+.scheduler-page {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  background: linear-gradient(135deg, #fdf6f0, #e9e6f8, #ffffff);
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  overflow: hidden;
+}
+
+.scheduler-container {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  padding: 2rem;
+  gap: 1.5rem;
+}
+
+/* Left Sidebar - Course Categories */
+.courses-sidebar {
+  flex: 0 0 350px;
+  background: #ffffff;
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.courses-sidebar h2 {
+  font-size: 1.5rem;
+  color: #a68fb5;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.course-category {
+  margin-bottom: 1rem;
+}
+
+.category-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #6b5b7a;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #d6c6e0;
+}
+
+.course-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.course-card {
+  background: linear-gradient(135deg, #e8dff5, #f3ebff);
+  border: 2px solid #d6c6e0;
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  cursor: grab;
+  transition: all 0.2s ease;
+  user-select: none;
+  position: relative;
+  z-index: 1;
+}
+
+.course-card:hover {
+  transform: translateX(5px);
+  box-shadow: 0 4px 12px rgba(166, 143, 181, 0.2);
+  border-color: #a68fb5;
+  z-index: 100;
+}
+
+.course-card:active {
+  cursor: grabbing;
+}
+
+.course-card.dragging {
+  opacity: 0.5;
+  cursor: grabbing;
+}
+
+.course-code {
+  font-weight: 700;
+  color: #6b5b7a;
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.course-name {
+  font-size: 0.85rem;
+  color: #555;
+  line-height: 1.3;
+}
+
+.course-credits {
+  font-size: 0.75rem;
+  color: #888;
+  margin-top: 0.25rem;
+}
+
+/* Info Icon */
+.info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  background: #d6c6e0;
+  color: #6b5b7a;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: help;
+  position: relative;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.info-icon:hover {
+  background: #a68fb5;
+  color: white;
+  transform: scale(1.15);
+}
+
+.info-tooltip {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  right: 0;
+  background: white;
+  border: 2px solid #a68fb5;
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  min-width: 220px;
+  max-width: 280px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  pointer-events: none;
+}
+
+.info-icon:hover .info-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.info-tooltip::before {
+  content: "";
+  position: absolute;
+  top: 100%;
+  right: 8px;
+  border: 7px solid transparent;
+  border-top-color: #a68fb5;
+}
+
+.info-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  right: 10px;
+  border: 5px solid transparent;
+  border-top-color: white;
+  margin-bottom: 2px;
+}
+
+.tooltip-title {
+  font-weight: 700;
+  color: #6b5b7a;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e8dff5;
+}
+
+.tooltip-content {
+  font-size: 0.8rem;
+  color: #555;
+  line-height: 1.4;
+}
+
+.tooltip-row {
+  margin-bottom: 0.25rem;
+}
+
+.tooltip-label {
+  font-weight: 600;
+  color: #6b5b7a;
+}
+
+/* Right Side - Weekly Schedule */
+.schedule-area {
+  flex: 1;
+  background: #ffffff;
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.schedule-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.schedule-header h2 {
+  font-size: 1.75rem;
+  color: #a68fb5;
+  font-weight: 600;
+}
+
+.schedule-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btn-clear,
+.btn-save {
+  padding: 0.5rem 1.25rem;
+  border-radius: 1rem;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.btn-clear {
+  background: #f0f0f0;
+  color: #6b5b7a;
+}
+
+.btn-clear:hover {
+  background: #e0e0e0;
+  transform: translateY(-2px);
+}
+
+.btn-save {
+  background: linear-gradient(90deg, #a68fb5, #c3b0d5);
+  color: white;
+}
+
+.btn-save:hover {
+  background: linear-gradient(90deg, #b390ca, #785c92);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(166, 143, 181, 0.3);
+}
+
+/* Schedule Grid */
+.schedule-grid {
+  display: grid;
+  grid-template-columns: 80px repeat(5, 1fr);
+  gap: 1px;
+  background: #d6c6e0;
+  border-radius: 1rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 0 1 auto;
+  max-height: 450px;
+}
+
+.schedule-grid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.schedule-grid::-webkit-scrollbar-thumb {
+  background-color: #c3b0d5;
+  border-radius: 4px;
+}
+
+.schedule-grid::-webkit-scrollbar-track {
+  background-color: #f0f0f0;
+}
+
+.schedule-grid > div {
+  background: #ffffff;
+  padding: 0.75rem;
+}
+
+.time-header,
+.day-header {
+  background: linear-gradient(135deg, #e8dff5, #f3ebff);
+  font-weight: 600;
+  color: #6b5b7a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.time-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  color: #888;
+  background: #fafafa;
+}
+
+.schedule-cell {
+  position: relative;
+  min-height: 50px;
+  transition: background 0.2s ease;
+}
+
+.schedule-cell.drag-over {
+  background: #f3ebff;
+  border: 2px dashed #a68fb5;
+}
+
+.scheduled-course {
+  background: linear-gradient(135deg, #a68fb5, #c3b0d5);
+  color: white;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  cursor: pointer;
+}
+
+.scheduled-course:hover {
+  opacity: 0.9;
+}
+
+.scheduled-course .course-code {
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.scheduled-course .course-name {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.75rem;
+}
+
+.remove-course {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  background: rgba(255, 255, 255, 0.3);
+  border: none;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.remove-course:hover {
+  background: rgba(255, 255, 255, 0.5);
+  transform: scale(1.1);
+}
+
+/* Search Bar */
+.search-bar {
+  margin-bottom: 1rem;
+}
+
+.search-bar input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #d6c6e0;
+  border-radius: 0.75rem;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.search-bar input:focus {
+  outline: none;
+  border-color: #a68fb5;
+  box-shadow: 0 0 8px rgba(166, 143, 181, 0.3);
+}
+
+/* Total Credits Section */
+.total-credits {
+  margin-top: 1rem;
+  padding: 0.75rem 1.25rem;
+  background: linear-gradient(135deg, #e8dff5, #f3ebff);
+  border-radius: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 2px solid #d6c6e0;
+}
+
+.total-credits-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #6b5b7a;
+}
+
+.total-credits-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #a68fb5;
+}
+
+.credits-breakdown {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 0.35rem;
+  font-size: 0.85rem;
+  color: #6b5b7a;
+}
+
+.breakdown-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.breakdown-label {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.breakdown-value {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #6b5b7a;
+}
+
+/* Scrollbar styling */
+.courses-sidebar::-webkit-scrollbar,
+.schedule-area::-webkit-scrollbar {
+  width: 8px;
+}
+
+.courses-sidebar::-webkit-scrollbar-thumb,
+.schedule-area::-webkit-scrollbar-thumb {
+  background-color: #c3b0d5;
+  border-radius: 4px;
+}
+
+.courses-sidebar::-webkit-scrollbar-track,
+.schedule-area::-webkit-scrollbar-track {
+  background-color: #f0f0f0;
+}
