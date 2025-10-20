@@ -79,7 +79,7 @@
 .signin-card input[type="email"],
 .signin-card input[type="password"] {
   background-color:#d2bfe3;
-  width: 100%;
+  width: 90%;
   padding: 0.75rem 1rem;
   border: 2px solid #d6c6e0;
   border-radius: 0.9rem;

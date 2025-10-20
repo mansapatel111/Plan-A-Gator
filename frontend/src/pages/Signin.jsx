@@ -1,12 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import "./Signin.css"
-import "./Transcript";
+import "./Scheduler";
 
 export default function Signin() {
   const navigate = useNavigate();
 
-  const handleSignupClick = () => {
-    navigate("./Transcript");
+  const handleSigninClick = () => {
+    navigate("./Scheduler");
   }
 
   return (
@@ -20,7 +20,7 @@ export default function Signin() {
         <label>Password:</label>
         <input type="password" placeholder="Enter your password" />
 
-        <button onClick={handleSignupClick}>Sign in</button>
+        <button onClick={handleSigninClick}>Sign in</button>
       </div>
     </div>
   );
