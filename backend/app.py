@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
+from flask_sqlalchemy import SQLAlchemy
 import os
 
 # Load .env file
@@ -8,6 +9,13 @@ load_dotenv()
 
 app = Flask(__name__)
 CORS(app)  # allows frontend (React) to talk to backend 
+
+# Database configuration (PostgreSQL)
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
+#
 
 app.secret_key = os.getenv("SECRET_KEY")
 
