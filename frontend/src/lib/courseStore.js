@@ -184,6 +184,70 @@ function return_category(category_name){
     return list_of_courses;
 }
 
+/*
+adding recommend function which will be main part of scheduler
+1. suggesting up to 4 classes (maybe more if category all?)
+2. can limit 1 category - either elective, core, gened
+3. doesnt suggest courses that have already been taken
+4. courses only suggested when prereq returns true
+*/
+function recommend_courses(choices){
+    if (choices == null){
+        choices = {};
+    }
+
+    // gets category but if category not given then default to all
+    // gets number of items to return , defaults to 4
+    const course_category = choices.course_category || null;
+    let options_returned = Number(choices.options_returned);
+    if (!Number.isFinite(options_returned) || options_returned <= 0){
+        options_returned = 4;
+    }
+
+    // creating a pool of courses to choose from, if a category is chosen then the pool is that category
+    // using by_course.values as iterator
+    let options;
+    if (course_category){
+        options = return_category(course_category);
+    } else {
+        options = [];
+        const temp = by_course.values();
+        let next = temp.next();
+        while (!next.done){
+            options.push(next.value);
+            next = temp.next();
+        }
+    }
+
+    /*
+    filter the classes using rules
+    1) valid course code 2) no courses in has_taken 3) only if prereqs satisfied
+    */
+    const filter = [];
+    for (let i = 0; i < options.length; i++){
+        const course = options[i];
+
+        if (!course || !course.code){
+            continue;
+        }
+
+        if (has_taken.has(course.code)){
+            continue;
+        }
+
+        if (!checking_prereqs(course.code)){
+            continue;
+        }
+
+        filter.push(course);
+
+        if (filter.length >= options_returned){
+            break;
+        }
+    }
+    return filter;
+}
+
 export {
     add_course,
     add_many,
@@ -191,7 +255,7 @@ export {
     courses_taken,
     checking_prereqs,
     return_category,
-    // optional debug exports:
+    recommend_courses,
     by_course,
     by_category,
     prereqs,
