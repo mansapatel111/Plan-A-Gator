@@ -62,19 +62,19 @@ export default function Signup() {
       } else if (
         !(/[A-Z]/.test(formData.password))
       ) {
-        newErrors.password = "Password must include at least one uppercase letter"
+        newErrors.password = "Password must include at least one uppercase letter";
       } else if (
         !(/[a-z]/.test(formData.password))
       ) {
-        newErrors.password = "Password must include at least one lowercase letter"
+        newErrors.password = "Password must include at least one lowercase letter";
       } else if (
         !(/[0-9]/.test(formData.password))
       ) {
-        newErrors.password = "Password must include at least one number"
+        newErrors.password = "Password must include at least one number";
       } else if (
         !(/[^\w\s]/.test(formData.password))
       ) {
-        newErrors.password = "Password must include at least one special character"
+        newErrors.password = "Password must include at least one special character";
       }
     }
 
@@ -90,25 +90,33 @@ export default function Signup() {
       <div className="signup-card">
         <h1>Sign Up</h1>
         <form onSubmit={handleFormSubmit}>
-          <label>First Name:</label>
-          <input type="text" name="firstName" placeholder="Enter your first name" value={formData.firstName} onChange={handleFormChange}/>
-          {errors.firstName && <p className="error">{errors.firstName}</p>}
-
-          <label>Last Name:</label>
-          <input type="text" name="lastName" placeholder="Enter your last name" value={formData.lastName} onChange={handleFormChange}/>
-          {errors.lastName && <p className="error">{errors.lastName}</p>}
-
-          <label>Email:</label>
-          <input type="email" name="email" placeholder="Enter your UFL email" value={formData.email} onChange={handleFormChange}/>
-          {errors.email && <p className="error">{errors.email}</p>}
-
-          <label>Password:</label>
-          <input type={showPassword ? "text" : "password"} name="password" placeholder="Create a password" value={formData.password} onChange={handleFormChange}/>
-          <div className="password-container">
-            <button type="button" className="show-password-button" onClick={() => setShowPassword(!showPassword)}>{showPassword ? "Hide" : "Show"}</button>
+          <div className="input-group">
+            <label>First Name:</label>
+            <input type="text" name="firstName" placeholder="Enter your first name" value={formData.firstName} onChange={handleFormChange}/>
+            {errors.firstName && <div className="error">{errors.firstName}</div>}
           </div>
-          {errors.password && <p className="error">{errors.password}</p>}
 
+          <div className="input-group">
+            <label>Last Name:</label>
+            <input type="text" name="lastName" placeholder="Enter your last name" value={formData.lastName} onChange={handleFormChange}/>
+            {errors.lastName && <div className="error">{errors.lastName}</div>}
+          </div>
+          
+          <div className="input-group">
+            <label>Email:</label>
+            <input type="email" name="email" placeholder="Enter your UFL email" value={formData.email} onChange={handleFormChange}/>
+            {errors.email && <div className="error">{errors.email}</div>}
+          </div>
+          
+          <div className="input-group">
+            <label>Password:</label>
+            <div className="password-container">
+              <input type={showPassword ? "text" : "password"} name="password" placeholder="Create a password" value={formData.password} onChange={handleFormChange}/>
+              <button type="button" className="show-password-button" onClick={() => setShowPassword(!showPassword)}>{showPassword ? "Hide" : "Show"}</button>
+            </div>
+            {errors.password && <div className="error">{errors.password}</div>}
+          </div>
+        
           <button type="submit">Create Account</button>
         </form>
       </div>
