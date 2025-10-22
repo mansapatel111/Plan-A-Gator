@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import * as pdfjsLib from "pdfjs-dist";
 import pdfjsWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import "./Transcript.css";
@@ -6,6 +7,7 @@ import "./Transcript.css";
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
 export default function Transcript() {
+  const navigate = useNavigate();
   const [file, setFile] = useState(null);
   const [classes, setClasses] = useState([]);
   const [grade, setGrade] = useState("");
@@ -40,7 +42,7 @@ export default function Transcript() {
     }
 
     setErrors(newErrors);
-    if (hasError) return;
+  if (hasError) return null;
 
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
@@ -55,7 +57,61 @@ export default function Transcript() {
 
     const courseRegex = /\b[A-Z]{3}\s?\d{4}[A-Z]?\b/g;
     const matches = fullText.match(courseRegex) || [];
-    setClasses([...new Set(matches)]);
+    const unique = [...new Set(matches)];
+    setClasses(unique);
+    return unique;
+  };
+
+  const handleParseAndSave = async () => {
+    console.log('Starting parse+save');
+    const parsed = await handleParse();
+    console.log('Parsed result:', parsed);
+    if (parsed === null) return; // validation failed
+    if (Array.isArray(parsed) && parsed.length === 0) {
+      alert('No courses found in transcript');
+      return;
+    }
+    const user_id = localStorage.getItem("user_id");
+    if (!user_id) {
+      alert('No user_id found — please sign in or sign up first');
+      return;
+    }
+
+    // normalize parsed codes client-side too (trim spaces + uppercase)
+    const normalized = parsed.map((s) => (s || '').toString().replace(/\s+/g, '').toUpperCase()).filter(Boolean);
+    console.log('Sending normalized classes:', normalized);
+    const res = await fetch("http://127.0.0.1:5000/update-user-info", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id, grade, college }),
+    });
+    try {
+      const res2 = await fetch("http://127.0.0.1:5000/save-transcript", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id, classes: normalized }),
+      });
+
+      const data = await res.json();
+      const data2 = await res2.json();
+      console.log('update-user-info response', res.ok, data);
+      console.log('save-transcript response', res2.ok, data2);
+
+      if (res.ok && res2.ok) {
+        alert(data.message || data2.message || 'User info and transcript saved');
+        // navigate to scheduler so the user can build schedules
+        navigate('/scheduler');
+      } else if (res.ok && !res2.ok) {
+        alert(data2.error || data2.details || 'Transcript save failed');
+      } else if (!res.ok && res2.ok) {
+        alert(data.error || data.details || 'User info save failed');
+      } else {
+        alert((data.error || data.message) + ' & ' + (data2.error || data2.message) || 'Both saves failed');
+      }
+    } catch (err) {
+      console.error('Network or server error', err);
+      alert('Network or server error: ' + err.message);
+    }
   };
 
   return (
@@ -101,7 +157,7 @@ export default function Transcript() {
         {errors.file && <p className="error-text">{errors.file}</p>}
 
         {/* Parse Button */}
-        <button onClick={handleParse}>Parse Transcript</button>
+        <button onClick={handleParseAndSave}>Parse Transcript</button>
 
         {/* Extracted Courses */}
         {classes.length > 0 && (
