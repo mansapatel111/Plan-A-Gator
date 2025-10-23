@@ -1,5 +1,5 @@
 REQUIREMENTS = {
-    "CISE": {
+    "ENG": {
         "Core": [
             "COP3502C",
             "COP3503C",

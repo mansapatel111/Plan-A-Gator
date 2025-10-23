@@ -5,9 +5,24 @@ import "./Scheduler";
 export default function Signin() {
   const navigate = useNavigate();
 
-  const handleSigninClick = () => {
-    navigate("./Scheduler");
-  }
+  const handleSigninClick = async () => {
+    const email = document.querySelector('input[placeholder="Enter your email"]').value;
+    const password = document.querySelector('input[placeholder="Enter your password"]').value;
+
+    const res = await fetch("http://127.0.0.1:5000/signin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      localStorage.setItem("user_id", data.user_id);  // save logged-in user
+      navigate("/scheduler");
+    } else {
+      alert(data.error);
+    }
+  };
 
   return (
     <div className="signin-page">
