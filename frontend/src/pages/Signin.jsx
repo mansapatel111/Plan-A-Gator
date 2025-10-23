@@ -1,26 +1,68 @@
 import { useNavigate } from "react-router-dom";
 import "./Signin.css"
-import "./Scheduler";
+import { useState } from "react";
 
 export default function Signin() {
   const navigate = useNavigate();
 
   const handleSigninClick = () => {
-    navigate("./Scheduler");
+    navigate("/scheduler");
+  }
+
+  const [formData, setFormData] = useState({
+      email: "",
+      password: "",
+    })
+
+  const [errors, setErrors] = useState({});
+
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleFormChange = (e) => {
+    setFormData({...formData, [e.target.name]: e.target.value})
+  }
+
+  const handleFormSubmit = (e) => {
+      e.preventDefault();
+      let newErrors = {};
+
+      if (!formData.email.trim()) {
+        newErrors.email = "Email is required";
+      }
+
+      if (!formData.password.trim()) {
+        newErrors.password = "Password is required";
+      }
+
+      setErrors(newErrors);
+
+      if (Object.keys(newErrors).length === 0) {
+        handleSigninClick();
+      }
   }
 
   return (
     <div className="signin-page">
       <div className="signin-card">
         <h1>Sign In</h1>
-
-        <label>Email:</label>
-        <input type="email" placeholder="Enter your email" />
-
-        <label>Password:</label>
-        <input type="password" placeholder="Enter your password" />
-
-        <button onClick={handleSigninClick}>Sign in</button>
+        <form onSubmit={handleFormSubmit}>
+          <div className="input-group">
+            <label>Email:</label>
+            <input type="email" name="email" placeholder="Enter your email" value={formData.email} onChange={handleFormChange}/>
+            {errors.email && <div className="error">{errors.email}</div>}
+          </div>
+          
+          <div className="input-group">
+            <label>Password:</label>
+            <div className="password-container">
+              <input type={showPassword ? "text" : "password"} name = "password" placeholder="Enter your password" value={formData.password} onChange={handleFormChange}/>
+              <button type="button" className="show-password-button" onClick={() => setShowPassword(!showPassword)}>{showPassword ? "Hide" : "Show"}</button>
+            </div>
+            {errors.password && <div className="error">{errors.password}</div>}
+          </div>
+          
+          <button type="submit" >Sign in</button>
+        </form>
       </div>
     </div>
   );
