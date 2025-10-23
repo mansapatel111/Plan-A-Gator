@@ -3,10 +3,18 @@
   width: 100vw;                  
   display: flex;
   align-items: center;         
-  justify-content: center;        
+  justify-content: center; 
+  flex-direction: column;       
   background: linear-gradient(135deg, #fdf6f0, #e9e6f8, #ffffff);
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   overflow: hidden;
+}
+
+.signin-page t {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #6b5b7a;
+  margin-bottom: 2rem;
 }
 
 /*centered card */
@@ -22,7 +30,7 @@
   max-width: 90%;
   height: auto;                
   padding: 2rem 2rem;
-  text-align: center;
+  text-align: left;
   overflow-y: auto;  
   overflow-x: hidden;            
 }
@@ -41,11 +49,12 @@
   color: #6b5b7a;
   margin-bottom: 0.25rem;
   align-self: flex-start;
+  text-align: left;
   
 }
 
 /* Parse Button */
-.signin-card button {
+.signin-card button[type="submit"] {
   width: 60%;
   padding: 0.85rem;
   background: linear-gradient(90deg, #a68fb5, #c3b0d5);
@@ -56,6 +65,8 @@
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   margin-bottom: 1.5rem;
+  margin: 1.5rem auto;   
+  display: block; 
 }
 
 .signin-card button:hover {
@@ -64,22 +75,10 @@
   box-shadow: 0 5px 15px rgba(166, 143, 181, 0.25);
 }
 
-.signin-card input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 2px solid #d6c6e0;
-  border-radius: 1rem;
-  margin-bottom: 1.25rem;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  text-align: left;
-}
-
-.signin-card input[type="text"],
 .signin-card input[type="email"],
 .signin-card input[type="password"] {
   background-color:#d2bfe3;
-  width: 90%;
+  width: 100%;
   padding: 0.75rem 1rem;
   border: 2px solid #d6c6e0;
   border-radius: 0.9rem;
@@ -92,4 +91,93 @@
   outline: none;
   border-color: #a68fb5;
   box-shadow: 0 0 8px rgba(166, 143, 181, 0.3);
+}
+
+.input-group {
+  margin-bottom: 1rem;
+  width: 150%;
+  transform: translateX(-20%);
+}
+
+.password-container {
+  position: relative;
+  width: 100%; 
+  margin-bottom: 0 auto 1.25rem; 
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.password-container input {
+  background-color:#d2bfe3;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid #d6c6e0;
+  border-radius: 0.9rem;
+  margin-bottom: 1.25rem;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.password-container input:focus {
+  outline: none;
+  border-color: #a68fb5;
+  box-shadow: 0 0 8px rgba(166, 143, 181, 0.3);
+}
+
+.signin-card input:not(:placeholder-shown) {
+  background-color: #d2bfe3;   
+  color: rgb(71, 30, 98);              
+}
+
+.signin-card input:-webkit-autofill,
+.signin-card input:-webkit-autofill:focus,
+.signin-card input:-webkit-autofill:hover {
+  -webkit-box-shadow: 0 0 0px 1000px #d2bfe3 inset !important;
+  box-shadow: 0 0 0px 1000px #d2bfe3 inset !important;
+  -webkit-text-fill-color: rgb(71, 30, 98) !important;
+  border: 2px solid #d6c6e0 !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.show-password-button {
+  position: absolute;
+  right: -20px;                   
+  top: 15%;                      
+  background: #d2bfe3;
+  color: white;
+  font-weight: 600;
+  border: none;
+  border-radius: 0.9rem;         
+  padding: 0.5rem 0.75rem;        
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.show-password-button:hover {
+  background: #a588c0;
+  transform: scale(1.05);
+}
+
+.signin-card .error {
+  color: red;
+  font-size: 0.85rem;
+  height: 1rem; 
+  margin-top: -0.75rem;
+  text-align: left;
+}
+
+.signup-link {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.signup-link a {
+  color: #6b5b7a;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.signup-link a :hover {
+  color: #483759;
 }

@@ -3,10 +3,18 @@
   width: 100vw;                  
   display: flex;
   align-items: center;         
-  justify-content: center;        
+  justify-content: center;
+  flex-direction: column;        
   background: linear-gradient(135deg, #fdf6f0, #e9e6f8, #ffffff);
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   overflow: hidden;
+}
+
+.signup-page t {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #6b5b7a;
+  margin-bottom: 2rem;
 }
 
 /*centered card */
