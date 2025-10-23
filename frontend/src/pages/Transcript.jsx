@@ -67,6 +67,10 @@ export default function Transcript() {
     const parsed = await handleParse();
     console.log('Parsed result:', parsed);
     if (parsed === null) return; // validation failed
+    if (parsed && parsed.length > 0) {
+        localStorage.setItem('parsed_classes', parsed.join(','));
+    }
+
     if (Array.isArray(parsed) && parsed.length === 0) {
       alert('No courses found in transcript');
       return;
@@ -78,40 +82,40 @@ export default function Transcript() {
     }
 
     // normalize parsed codes client-side too (trim spaces + uppercase)
-    const normalized = parsed.map((s) => (s || '').toString().replace(/\s+/g, '').toUpperCase()).filter(Boolean);
-    console.log('Sending normalized classes:', normalized);
-    const res = await fetch("http://127.0.0.1:5000/update-user-info", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user_id, grade, college }),
-    });
-    try {
-      const res2 = await fetch("http://127.0.0.1:5000/save-transcript", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id, classes: normalized }),
-      });
+  //   const normalized = parsed.map((s) => (s || '').toString().replace(/\s+/g, '').toUpperCase()).filter(Boolean);
+  //   console.log('Sending normalized classes:', normalized);
+  //   const res = await fetch("http://127.0.0.1:5000/update-user-info", {
+  //     method: "POST",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify({ user_id, grade, college }),
+  //   });
+  //   try {
+  //     const res2 = await fetch("http://127.0.0.1:5000/save-transcript", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ user_id, classes: normalized }),
+  //     });
 
-      const data = await res.json();
-      const data2 = await res2.json();
-      console.log('update-user-info response', res.ok, data);
-      console.log('save-transcript response', res2.ok, data2);
+  //     const data = await res.json();
+  //     const data2 = await res2.json();
+  //     console.log('update-user-info response', res.ok, data);
+  //     console.log('save-transcript response', res2.ok, data2);
 
-      if (res.ok && res2.ok) {
-        alert(data.message || data2.message || 'User info and transcript saved');
-        // navigate to scheduler so the user can build schedules
-        navigate('/scheduler');
-      } else if (res.ok && !res2.ok) {
-        alert(data2.error || data2.details || 'Transcript save failed');
-      } else if (!res.ok && res2.ok) {
-        alert(data.error || data.details || 'User info save failed');
-      } else {
-        alert((data.error || data.message) + ' & ' + (data2.error || data2.message) || 'Both saves failed');
-      }
-    } catch (err) {
-      console.error('Network or server error', err);
-      alert('Network or server error: ' + err.message);
-    }
+  //     if (res.ok && res2.ok) {
+  //       alert(data.message || data2.message || 'User info and transcript saved');
+  //       // navigate to scheduler so the user can build schedules
+  //       navigate('/scheduler');
+  //     } else if (res.ok && !res2.ok) {
+  //       alert(data2.error || data2.details || 'Transcript save failed');
+  //     } else if (!res.ok && res2.ok) {
+  //       alert(data.error || data.details || 'User info save failed');
+  //     } else {
+  //       alert((data.error || data.message) + ' & ' + (data2.error || data2.message) || 'Both saves failed');
+  //     }
+  //   } catch (err) {
+  //     console.error('Network or server error', err);
+  //     alert('Network or server error: ' + err.message);
+  //   }
   };
 
   return (
