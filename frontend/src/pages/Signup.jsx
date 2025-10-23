@@ -81,6 +81,26 @@ export default function Signup() {
 
     if (Object.keys(newErrors).length === 0) {
       handleSignupClick();
+  const handleSignupClick = async () => {
+    const user = {
+      username: document.querySelector('input[placeholder="Enter your full name"]').value,
+      password: document.querySelector('input[placeholder="Create a password"]').value,
+      email: document.querySelector('input[placeholder="Enter your email"]').value,
+    };
+
+    const res = await fetch("http://127.0.0.1:5000/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(user),
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      alert(data.message || 'Account created');
+      localStorage.setItem("user_id", data.user_id);
+      navigate("/transcript");
+    } else {
+      alert(data.error || 'Signup failed');
     }
   }
 
@@ -89,36 +109,17 @@ export default function Signup() {
       <t>Welcome to Plan-A-Gator!</t>
       <div className="signup-card">
         <h1>Sign Up</h1>
-        <form onSubmit={handleFormSubmit}>
-          <div className="input-group">
-            <label>First Name:</label>
-            <input type="text" name="firstName" placeholder="Enter your first name" value={formData.firstName} onChange={handleFormChange}/>
-            {errors.firstName && <div className="error">{errors.firstName}</div>}
-          </div>
 
-          <div className="input-group">
-            <label>Last Name:</label>
-            <input type="text" name="lastName" placeholder="Enter your last name" value={formData.lastName} onChange={handleFormChange}/>
-            {errors.lastName && <div className="error">{errors.lastName}</div>}
-          </div>
-          
-          <div className="input-group">
-            <label>Email:</label>
-            <input type="email" name="email" placeholder="Enter your UFL email" value={formData.email} onChange={handleFormChange}/>
-            {errors.email && <div className="error">{errors.email}</div>}
-          </div>
-          
-          <div className="input-group">
-            <label>Password:</label>
-            <div className="password-container">
-              <input type={showPassword ? "text" : "password"} name="password" placeholder="Create a password" value={formData.password} onChange={handleFormChange}/>
-              <button type="button" className="show-password-button" onClick={() => setShowPassword(!showPassword)}>{showPassword ? "Hide" : "Show"}</button>
-            </div>
-            {errors.password && <div className="error">{errors.password}</div>}
-          </div>
-        
-          <button type="submit">Create Account</button>
-        </form>
+        <label>Full Name:</label>
+        <input type="text" placeholder="Enter your full name" />
+
+        <label>Email:</label>
+        <input type="email" placeholder="Enter your email" />
+
+        <label>Password:</label>
+        <input type="password" placeholder="Create a password" />
+
+        <button onClick={handleSignupClick}>Create Account</button>
       </div>
     </div>
 

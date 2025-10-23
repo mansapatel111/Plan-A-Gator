@@ -1,32 +1,94 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import React from "react";
 import "./Scheduler.css";
 
 export default function Scheduler() {
   const [draggedCourse, setDraggedCourse] = useState(null);
   const [schedule, setSchedule] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
+  const [courseCategories, setCourseCategories] = useState({
+    "Core Classes": [],
+    "Technical Electives": [],
+    "General Education": []
+  });
+
+  // Modify your useEffect to map the backend data to the correct format
+  useEffect(() => {
+    const fetchRecommendations = async () => {
+        try {
+            const user_id = localStorage.getItem('user_id');
+            const classes = localStorage.getItem('parsed_classes') || '';
+            console.log('Fetching recommendations for user:', user_id);
+            
+            const response = await fetch(`http://127.0.0.1:5000/get-course-recommendations?user_id=${user_id}&classes=${classes}`);
+            const data = await response.json();
+            console.log('Received data:', data);
+            
+            if (response.ok) {
+                // Check if recommendations exist in the response
+                if (!data.recommendations) {
+                    console.error('No recommendations in response');
+                    return;
+                }
+
+                const formattedCourses = {
+                    "Core Classes": (data.recommendations.Core || []).map(code => ({
+                        code,
+                        name: `Course ${code}`,
+                        credits: 3,
+                        instructor: "TBD",
+                        time: "TBD"
+                    })),
+                    "Technical Electives": (data.recommendations["Elective/eligible"] || []).map(code => ({
+                        code,
+                        name: `Course ${code}`,
+                        credits: 3,
+                        instructor: "TBD",
+                        time: "TBD"
+                    })),
+                    "General Education": (data.recommendations.GenEd || []).map(code => ({
+                        code,
+                        name: `Course ${code}`,
+                        credits: 3,
+                        instructor: "TBD",
+                        time: "TBD"
+                    }))
+                };
+                console.log('Formatted courses:', formattedCourses);
+                setCourseCategories(formattedCourses);
+            } else {
+                console.error('Failed to fetch recommendations:', data.error);
+            }
+        } catch (err) {
+            console.error('Error fetching recommendations:', err);
+        }
+    };
+    
+    fetchRecommendations();
+}, []);
 
   // Sample course data - Victoria needs to replace this with real data variables
-  const courseCategories = {
-    "Core Classes": [
-      { code: "COP3502", name: "Programming Fundamentals 1", credits: 3, instructor: "Dr. Smith", time: "MWF 10:00-11:00" },
-      { code: "COP3503", name: "Programming Fundamentals 2", credits: 3, instructor: "Dr. Johnson", time: "TR 2:00-3:15" },
-      { code: "CDA3101", name: "Introduction to Computer Organization", credits: 3, instructor: "Dr. Williams", time: "MWF 1:00-2:00" },
-      { code: "COP3530", name: "Data Structures and Algorithms", credits: 3, instructor: "Dr. Brown", time: "TR 11:00-12:15" },
-    ],
-    "Technical Electives": [
-      { code: "COP4600", name: "Operating Systems", credits: 3, instructor: "Dr. Davis", time: "MWF 9:00-10:00" },
-      { code: "CNT4007", name: "Computer Networks", credits: 3, instructor: "Dr. Miller", time: "TR 3:30-4:45" },
-      { code: "CIS4301", name: "Information and Database Systems", credits: 3, instructor: "Dr. Garcia", time: "MWF 2:00-3:00" },
-      { code: "CAP4770", name: "Introduction to Data Science", credits: 3, instructor: "Dr. Martinez", time: "TR 9:30-10:45" },
-    ],
-    "General Education": [
-      { code: "MAC2311", name: "Calculus 1", credits: 4, instructor: "Dr. Anderson", time: "MWF 11:00-12:00" },
-      { code: "MAC2312", name: "Calculus 2", credits: 4, instructor: "Dr. Taylor", time: "MWF 3:00-4:00" },
-      { code: "PHY2048", name: "Physics with Calculus 1", credits: 3, instructor: "Dr. Thomas", time: "TR 1:00-2:15" },
-      { code: "ENC1101", name: "Composition 1", credits: 3, instructor: "Prof. White", time: "MWF 8:00-9:00" },
-    ],
-  };
+  // const courseCategories = {
+  //   "Core Classes": [
+  //     { code: "COP3502", name: "Programming Fundamentals 1", credits: 3, instructor: "Dr. Smith", time: "MWF 10:00-11:00" },
+  //     { code: "COP3503", name: "Programming Fundamentals 2", credits: 3, instructor: "Dr. Johnson", time: "TR 2:00-3:15" },
+  //     { code: "CDA3101", name: "Introduction to Computer Organization", credits: 3, instructor: "Dr. Williams", time: "MWF 1:00-2:00" },
+  //     { code: "COP3530", name: "Data Structures and Algorithms", credits: 3, instructor: "Dr. Brown", time: "TR 11:00-12:15" },
+  //   ],
+  //   "Technical Electives": [
+  //     { code: "COP4600", name: "Operating Systems", credits: 3, instructor: "Dr. Davis", time: "MWF 9:00-10:00" },
+  //     { code: "CNT4007", name: "Computer Networks", credits: 3, instructor: "Dr. Miller", time: "TR 3:30-4:45" },
+  //     { code: "CIS4301", name: "Information and Database Systems", credits: 3, instructor: "Dr. Garcia", time: "MWF 2:00-3:00" },
+  //     { code: "CAP4770", name: "Introduction to Data Science", credits: 3, instructor: "Dr. Martinez", time: "TR 9:30-10:45" },
+  //   ],
+  //   "General Education": [
+  //     { code: "MAC2311", name: "Calculus 1", credits: 4, instructor: "Dr. Anderson", time: "MWF 11:00-12:00" },
+  //     { code: "MAC2312", name: "Calculus 2", credits: 4, instructor: "Dr. Taylor", time: "MWF 3:00-4:00" },
+  //     { code: "PHY2048", name: "Physics with Calculus 1", credits: 3, instructor: "Dr. Thomas", time: "TR 1:00-2:15" },
+  //     { code: "ENC1101", name: "Composition 1", credits: 3, instructor: "Prof. White", time: "MWF 8:00-9:00" },
+  //   ],
+  // };
 
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
   const times = ["8:00 AM", "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", 
@@ -199,41 +261,42 @@ export default function Scheduler() {
               </div>
             ))}
 
+
             {/* Time slots and schedule cells */}
             {times.map((time) => (
-              <>
-                <div key={`time-${time}`} className="time-slot">
-                  {time}
-                </div>
-                {days.map((day) => {
-                  const key = `${day}-${time}`;
-                  const course = schedule[key];
-                  
-                  return (
-                    <div
-                      key={key}
-                      className="schedule-cell"
-                      onDragOver={handleDragOver}
-                      onDrop={() => handleDrop(day, time)}
-                    >
-                      {course && (
-                        <div className="scheduled-course">
-                          <button
-                            className="remove-course"
-                            onClick={(e) => handleRemoveCourse(key, e)}
-                          >
-                            ×
-                          </button>
-                          <div>
-                            <div className="course-code">{course.code}</div>
-                            <div className="course-name">{course.name}</div>
-                          </div>
-                        </div>
-                      )}
+                <React.Fragment key={time}>  {/* Replace empty fragment with keyed Fragment */}
+                    <div className="time-slot">
+                        {time}
                     </div>
-                  );
-                })}
-              </>
+                    {days.map((day) => {
+                        const key = `${day}-${time}`;
+                        const course = schedule[key];
+                        
+                        return (
+                            <div
+                                key={key}
+                                className="schedule-cell"
+                                onDragOver={handleDragOver}
+                                onDrop={() => handleDrop(day, time)}
+                            >
+                                {course && (
+                                    <div className="scheduled-course">
+                                        <button
+                                            className="remove-course"
+                                            onClick={(e) => handleRemoveCourse(key, e)}
+                                        >
+                                            ×
+                                        </button>
+                                        <div>
+                                            <div className="course-code">{course.code}</div>
+                                            <div className="course-name">{course.name}</div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </React.Fragment>
             ))}
           </div>
 
