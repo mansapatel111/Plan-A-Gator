@@ -86,6 +86,7 @@ export default function Signup() {
 
   return (
     <div className="signup-page">
+      <t>Welcome to Plan-A-Gator!</t>
       <div className="signup-card">
         <h1>Sign Up</h1>
         <form onSubmit={handleFormSubmit}>

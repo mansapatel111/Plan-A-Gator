@@ -1,6 +1,8 @@
 import { useNavigate } from "react-router-dom";
-import "./Signin.css"
+import { Link } from "react-router-dom";
 import { useState } from "react";
+import "./Signin.css"
+
 
 export default function Signin() {
   const navigate = useNavigate();
@@ -43,6 +45,7 @@ export default function Signin() {
 
   return (
     <div className="signin-page">
+      <t>Welcome to Plan-A-Gator!</t>
       <div className="signin-card">
         <h1>Sign In</h1>
         <form onSubmit={handleFormSubmit}>
@@ -61,7 +64,11 @@ export default function Signin() {
             {errors.password && <div className="error">{errors.password}</div>}
           </div>
           
-          <button type="submit" >Sign in</button>
+          <div className="signup-link">
+            <label>Don't have an account?</label> <Link to="/signup">Click here to sign up!</Link>
+          </div>
+
+          <button type="submit">Sign in</button>
         </form>
       </div>
     </div>
