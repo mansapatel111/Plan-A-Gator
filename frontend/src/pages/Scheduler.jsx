@@ -1,4 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 import React from "react";
 import "./Scheduler.css";
 
@@ -11,6 +13,7 @@ export default function Scheduler() {
     "Technical Electives": [],
     "General Education": []
   });
+  const scheduleRef = useRef(null);
 
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
   const times = ["8:00 AM", "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", 
@@ -108,46 +111,53 @@ export default function Scheduler() {
     e.preventDefault();
   };
 
+
+const addCourseToSchedule = (course) => {
+  if (!course || !course.timeInfo) return;
+
+  const { days: courseDays, startTime } = course.timeInfo;
+
+
+  let hasConflict = false;
+  let conflictingCourse = null;
+  
+  for (const courseDay of courseDays) {
+    const key = `${courseDay}-${startTime}`;
+    if (schedule[key]) {
+      hasConflict = true;
+      conflictingCourse = schedule[key];
+      break;
+    }
+  }
+
+  if (hasConflict) {
+    alert(`Time conflict! This course meets on ${courseDays.join('/')} at ${startTime}, but ${conflictingCourse.code} is already scheduled at that time.`);
+    return false;
+  }
+
+ 
+  setSchedule((prev) => {
+    const newSchedule = { ...prev };
+    courseDays.forEach(courseDay => {
+      const key = `${courseDay}-${startTime}`;
+      newSchedule[key] = course;
+    });
+    return newSchedule;
+  });
+
+  return true;
+};
+
+    const handleCourseClick = (course) => {
+    addCourseToSchedule(course);
+    };
+
   const handleDrop = (day, time) => {
-    if (!draggedCourse) return;
-
-    const { days: courseDays, startTime } = draggedCourse.timeInfo;
-
-    // Check if this is a valid drop location
-    if (!courseDays.includes(day) || startTime !== time) {
-      alert(`This course meets on ${courseDays.join('/')} at ${startTime}`);
-      setDraggedCourse(null);
-      return;
-    }
-
-    // Check for conflicts on all days this course meets
-    let hasConflict = false;
-    for (const courseDay of courseDays) {
-      const key = `${courseDay}-${time}`;
-      if (schedule[key]) {
-        hasConflict = true;
-        break;
-      }
-    }
-
-    if (hasConflict) {
-      alert('Time conflict! This slot is already occupied.');
-      setDraggedCourse(null);
-      return;
-    }
-
-    // Add course to all its meeting days
-    setSchedule((prev) => {
-      const newSchedule = { ...prev };
-      courseDays.forEach(courseDay => {
-        const key = `${courseDay}-${time}`;
-        newSchedule[key] = draggedCourse;
-      });
-      return newSchedule;
-    });
-
-    setDraggedCourse(null);
-  };
+  if (!draggedCourse) return;
+  
+  addCourseToSchedule(draggedCourse);
+  setDraggedCourse(null);
+};
 
   const handleRemoveCourse = (courseCode, e) => {
     e.stopPropagation();
@@ -168,10 +178,82 @@ export default function Scheduler() {
     setSchedule({});
   };
 
-  const handleSaveSchedule = () => {
-    console.log("Saving schedule:", schedule);
-    alert("Schedule saved! (Check console for details)");
-  };
+    const handleSaveSchedule = async () => {
+        try {
+        // Make sure we have a reference to the schedule element
+        if (!scheduleRef.current) {
+        throw new Error('Schedule element not found');
+        }
+
+        // Add a temporary class for better PDF capture
+        scheduleRef.current.classList.add('printing');
+
+        // Create canvas with better settings
+        const canvas = await html2canvas(scheduleRef.current, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        logging: true, // Enable logging to debug issues
+        onclone: (document) => {
+            // Any cleanup needed before capture
+            const element = document.querySelector('.schedule-grid');
+            if (element) {
+            element.style.backgroundColor = '#ffffff';
+            }
+        }
+        });
+
+        // Create PDF with proper dimensions
+        const pdfWidth = 210; // A4 width in mm
+        const pdfHeight = 297; // A4 height in mm
+        const aspectRatio = canvas.height / canvas.width;
+        const imgWidth = pdfWidth - 20; // Leave 10mm margin on each side
+        const imgHeight = imgWidth * aspectRatio;
+
+        // Initialize PDF
+        const pdf = new jsPDF({
+        orientation: imgHeight > pdfWidth ? 'portrait' : 'landscape',
+        unit: 'mm',
+        format: 'a4'
+        });
+
+        // Add title
+        pdf.setFontSize(16);
+        pdf.text('Weekly Schedule', pdfWidth / 2, 15, { align: 'center' });
+
+        // Add the schedule image
+        try {
+        pdf.addImage(
+            canvas.toDataURL('image/jpeg', 1.0),
+            'JPEG',
+            10, // Left margin
+            25, // Top margin after title
+            imgWidth,
+            imgHeight
+        );
+
+        // Add schedule details at bottom
+        pdf.setFontSize(12);
+        const bottomY = Math.min(imgHeight + 35, pdfHeight - 15);
+        pdf.text(`Total Courses: ${countUniqueCourses()}`, 10, bottomY);
+        pdf.text(`Total Credits: ${calculateTotalCredits()}`, 10, bottomY + 7);
+
+        // Save the PDF
+        pdf.save(`schedule-${new Date().toISOString().split('T')[0]}.pdf`);
+        } catch (imageError) {
+        console.error('Error adding image to PDF:', imageError);
+        throw new Error('Failed to generate PDF: Image processing error');
+        }
+
+        // Remove temporary printing class
+        scheduleRef.current.classList.remove('printing');
+        
+    } catch (error) {
+        console.error('PDF Generation Error:', error);
+        alert(`Failed to generate PDF: ${error.message}`);
+    }
+    };
 
   const calculateTotalCredits = () => {
     const uniqueCourses = new Set();
@@ -232,9 +314,10 @@ export default function Scheduler() {
                 {courses.map((course) => (
                   <div
                     key={course.code}
-                    className="course-card"
-                    draggable
-                    onDragStart={() => handleDragStart(course)}
+                    className="course-card"
+                    draggable
+                    onDragStart={() => handleDragStart(course)}
+                    onClick={() => handleCourseClick(course)}
                   >
                     <div className="course-code">
                       <span>{course.code}</span>
@@ -277,7 +360,7 @@ export default function Scheduler() {
         </div>
 
         {/* Right Side - Weekly Schedule */}
-        <div className="schedule-area">
+        <div className="schedule-area" ref={scheduleRef}>
           <div className="schedule-header">
             <h2>Weekly Schedule</h2>
             <div className="schedule-actions">
