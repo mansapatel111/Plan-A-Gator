@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import React from "react";
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import "./Scheduler.css";
 
 export default function Scheduler() {
@@ -17,6 +18,12 @@ export default function Scheduler() {
   const [loadingCourseInfo, setLoadingCourseInfo] = useState(new Set());
   const [activeInfoCard, setActiveInfoCard] = useState(null);
   const scheduleRef = useRef(null);
+  const [savedSchedules, setSavedSchedules] = useState([]);
+  const [selectedSchedule, setSelectedSchedule] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [scheduleName, setScheduleName] = useState("");
+  const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
+
 
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
   const times = ["8:30 AM", "9:35 AM", "10:40 AM", "11:45 AM", "12:50 PM", 
@@ -207,34 +214,149 @@ export default function Scheduler() {
     setSchedule({});
   };
 
-  const handleSaveSchedule = async () => {
-    try {
-      const canvas = await html2canvas(scheduleRef.current);
-      const imgData = canvas.toDataURL('image/png');
-      
-      const pdf = new jsPDF();
-      const imgWidth = 210;
-      const pageHeight = 295;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      
-      let position = 0;
-      
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-      
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
-      
-      pdf.save('schedule.pdf');
+    const handleSaveSchedule = async () => {
+        try {
+        // Make sure we have a reference to the schedule element
+        if (!scheduleRef.current) {
+        throw new Error('Schedule element not found');
+        }
+
+        // Add a temporary class for better PDF capture
+        scheduleRef.current.classList.add('printing');
+
+        // Create canvas with better settings
+        const canvas = await html2canvas(scheduleRef.current, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        logging: true, // Enable logging to debug issues
+        onclone: (document) => {
+            // Any cleanup needed before capture
+            const element = document.querySelector('.schedule-grid');
+            if (element) {
+            element.style.backgroundColor = '#ffffff';
+            }
+        }
+        });
+
+        // Create PDF with proper dimensions
+        const pdfWidth = 210; // A4 width in mm
+        const pdfHeight = 297; // A4 height in mm
+        const aspectRatio = canvas.height / canvas.width;
+        const imgWidth = pdfWidth - 20; // Leave 10mm margin on each side
+        const imgHeight = imgWidth * aspectRatio;
+
+        // Initialize PDF
+        const pdf = new jsPDF({
+        orientation: imgHeight > pdfWidth ? 'portrait' : 'landscape',
+        unit: 'mm',
+        format: 'a4'
+        });
+
+        // Add title
+        pdf.setFontSize(16);
+        pdf.text('Weekly Schedule', pdfWidth / 2, 15, { align: 'center' });
+
+        // Add the schedule image
+        try {
+        pdf.addImage(
+            canvas.toDataURL('image/jpeg', 1.0),
+            'JPEG',
+            10, // Left margin
+            25, // Top margin after title
+            imgWidth,
+            imgHeight
+        );
+
+        // Add schedule details at bottom
+        pdf.setFontSize(12);
+        const bottomY = Math.min(imgHeight + 35, pdfHeight - 15);
+        pdf.text(`Total Courses: ${countUniqueCourses()}`, 10, bottomY);
+        pdf.text(`Total Credits: ${calculateTotalCredits()}`, 10, bottomY + 7);
+
+        // Save the PDF
+        pdf.save(`schedule-${new Date().toISOString().split('T')[0]}.pdf`);
+        } catch (imageError) {
+        console.error('Error adding image to PDF:', imageError);
+        throw new Error('Failed to generate PDF: Image processing error');
+        }
+
+        // Remove temporary printing class
+        scheduleRef.current.classList.remove('printing');
+
+        if (!scheduleName.trim()) {
+        alert("Please enter a name for your schedule");
+        return;
+        }
+        const newSchedule = {
+            id: Date.now(),
+            name: scheduleName,
+            schedule: { ...schedule },
+            credits: calculateTotalCredits(),
+            courses: countUniqueCourses(),
+            priority: savedSchedules.length + 1
+        };
+
+        setSavedSchedules(prev => [...prev, newSchedule]);
+        setScheduleName(""); 
+
+        
     } catch (error) {
-      console.error('Error saving schedule:', error);
+        console.error('PDF Generation Error:', error);
+        console.error('Error saving schedule:', error);
+        alert(`Failed to generate PDF: ${error.message}`);
     }
-  };
+    };
+//handle selecting a saved schedule  
+const handleScheduleClick = (savedSchedule) => {
+    const card = event.currentTarget;
+    const rect = card.getBoundingClientRect();
+    
+    setModalPosition({
+        top: rect.top,
+        left: rect.left
+    });
+    setSelectedSchedule(savedSchedule);
+    setShowModal(true);
+};
+
+const handleLoadSchedule = () => {
+    if (selectedSchedule) {
+        setSchedule(selectedSchedule.schedule);
+        setShowModal(false);
+    }
+};
+
+const handleDragEnd = (result) => {
+    if (!result.destination) return;
+
+    const items = Array.from(savedSchedules);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    // Update priorities
+    items.forEach((item, index) => {
+        item.priority = index + 1;
+    });
+
+    setSavedSchedules(items);
+};
+
+const handlePriorityChange = (scheduleId, direction) => {
+    setSavedSchedules(prev => {
+        const schedules = [...prev];
+        const index = schedules.findIndex(s => s.id === scheduleId);
+        if (direction === 'up' && index > 0) {
+            [schedules[index], schedules[index - 1]] = [schedules[index - 1], schedules[index]];
+        } else if (direction === 'down' && index < schedules.length - 1) {
+            [schedules[index], schedules[index + 1]] = [schedules[index + 1], schedules[index]];
+        }
+        // Update priorities
+        return schedules.map((s, i) => ({ ...s, priority: i + 1 }));
+    });
+};
+//up until here
 
   const calculateTotalCredits = () => {
     const uniqueCourses = new Set();
@@ -326,19 +448,19 @@ export default function Scheduler() {
           ))}
         </div>
 
-        {/* Right Side - Weekly Schedule */}
-        <div className="schedule-area" ref={scheduleRef}>
-          <div className="schedule-header">
-            <h2>Weekly Schedule</h2>
-            <div className="schedule-actions">
-              <button className="btn-clear" onClick={handleClearSchedule}>
-                Clear Schedule
-              </button>
-              <button className="btn-save" onClick={handleSaveSchedule}>
-                Save Schedule
-              </button>
-            </div>
-          </div>
+        {/* Right Side - Weekly Schedule */}
+        <div className="schedule-area" ref={scheduleRef}>
+          <div className="schedule-header">
+            <h2>Weekly Schedule</h2>
+            <div className="schedule-actions">
+              <button className="btn-clear" onClick={handleClearSchedule}>
+                Clear Schedule
+              </button>
+{/*               <button className="btn-save" onClick={handleSaveSchedule}>
+                Save Schedule
+              </button> */}
+            </div>
+          </div>
 
           <div className="schedule-grid">
             {/* Top-left corner */}
@@ -411,6 +533,56 @@ export default function Scheduler() {
             </div>
             <div className="total-credits-value">{calculateTotalCredits()} Credits</div>
           </div>
+
+        {/* <div className="saved-schedules-section">
+            <h3>Saved Schedules</h3>
+            <div className="schedule-input-group">
+                <input
+                    type="text"
+                    value={scheduleName}
+                    onChange={(e) => setScheduleName(e.target.value)}
+                    placeholder="Enter schedule name..."
+                    className="schedule-name-input"
+                />
+                <button className="btn-save" onClick={handleSaveSchedule}>
+                    Save Current Schedule
+                </button>
+            </div>
+            <div className="saved-schedules-container">
+                {savedSchedules.map((schedule) => (
+                    <div
+                        key={schedule.id}
+                        className="saved-schedule-card"
+                        onClick={() => handleScheduleClick(schedule)}
+                    >
+                        <div className="priority-badge">#{schedule.priority}</div>
+                        <h4>{schedule.name}</h4>
+                        <p>{schedule.courses} Courses</p>
+                        <p>{schedule.credits} Credits</p>
+                        <div className="priority-controls">
+                            <button
+                                className="priority-btn"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handlePriorityChange(schedule.id, 'up');
+                                }}
+                            >
+                                ↑
+                            </button>
+                            <button
+                                className="priority-btn"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handlePriorityChange(schedule.id, 'down');
+                                }}
+                            >
+                                ↓
+                            </button>
+                        </div>
+                    </div>
+                ))}
+            </div> */}
+        {/* </div> */}
         </div>
       </div>
 
@@ -493,6 +665,95 @@ export default function Scheduler() {
           </div>
         </div>
       )}
+    {/* Saved Schedules Section */}
+    <div className="saved-schedules-section">
+        <h3>Saved Schedules</h3>
+        <div className="schedule-input-group">
+                <input
+                    type="text"
+                    value={scheduleName}
+                    onChange={(e) => setScheduleName(e.target.value)}
+                    placeholder="Enter schedule name..."
+                    className="schedule-name-input"
+                />
+                <button className="btn-save" onClick={handleSaveSchedule}>
+                    Save Current Schedule
+                </button>
+            </div>
+        <DragDropContext onDragEnd={handleDragEnd}>
+            <Droppable droppableId="schedules" direction="vertical">
+                {(provided) => (
+                    <div 
+                        className="saved-schedules-container"
+                        {...provided.droppableProps}
+                        ref={provided.innerRef}
+                    >
+                        {savedSchedules.map((schedule, index) => (
+                            <Draggable 
+                                key={schedule.id} 
+                                draggableId={schedule.id.toString()} 
+                                index={index}
+                            >
+                                {(provided) => (
+                                    <div
+                                        className="saved-schedule-card"
+                                        ref={provided.innerRef}
+                                        {...provided.draggableProps}
+                                        {...provided.dragHandleProps}
+                                        onClick={() => handleScheduleClick(schedule)}
+                                    >
+                                        <h4>{schedule.name}</h4>
+                                        <p>{schedule.credits} Credits</p>
+                                    </div>
+                                )}
+                            </Draggable>
+                        ))}
+                        {provided.placeholder}
+                    </div>
+                )}
+            </Droppable>
+        </DragDropContext>
+    </div>
+
+    {/* Schedule View Modal */}
+    {showModal && selectedSchedule && (
+    <div className="schedule-modal-overlay" onClick={() => setShowModal(false)}>
+        <div 
+            className="schedule-modal-content" 
+            onClick={e => e.stopPropagation()}
+            style={{
+                top: `${'saved-schedule-card'.top}px`,
+                left: `${'saved-schedule-card'.left}px`,
+            }}
+        >
+            <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
+            <h2>{selectedSchedule.name}</h2>
+            <div className="modal-schedule-preview">
+                <div className="preview-stats">
+                    <p>Total Courses: {selectedSchedule.courses}</p>
+                    <p>Total Credits: {selectedSchedule.credits}</p>
+                    
+                    {/* Add more details here */}
+                    <div className="course-list">
+                        {Object.values(selectedSchedule.schedule)
+                          // Filter unique courses by code
+                          .filter((course, index, self) => 
+                              index === self.findIndex(c => c.code === course.code)
+                          )
+                          .map((course, index) => (
+                              <div key={index} className="modal-course-item">
+                                  <span className="modal-course-name">{course.name}</span>
+                              </div>
+                          ))}
+                    </div>
+                </div>
+                <button className="load-schedule-btn" onClick={handleLoadSchedule}>
+                    Load This Schedule
+                </button>
+            </div>
+        </div>
+    </div>
+)}
     </div>
   );
 }
