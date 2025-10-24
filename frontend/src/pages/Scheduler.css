@@ -457,3 +457,218 @@
 .schedule-area::-webkit-scrollbar-track {
   background-color: #f0f0f0;
 }
+
+.syllabus-link {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.syllabus-link:hover {
+  text-decoration: underline;
+}
+
+.tooltip-content {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+
+
+/* Info Card Modal Styles */
+.info-card-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.info-card-modal {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  max-width: 600px;
+  width: 100%;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.info-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f8fafc;
+}
+
+.info-card-header h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.info-card-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.info-card-close:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.info-card-content {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.info-section {
+  margin-bottom: 20px;
+}
+
+.info-section:last-child {
+  margin-bottom: 0;
+}
+
+.info-label {
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-value {
+  color: #4b5563;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.info-value.description {
+  text-align: justify;
+  line-height: 1.7;
+}
+
+.syllabus-link-large {
+  display: inline-flex;
+  align-items: center;
+  background: #3b82f6;
+  color: white;
+  text-decoration: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.syllabus-link-large:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.loading-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: #6b7280;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e5e7eb;
+  border-top: 3px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Update info icon styles */
+.info-icon {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #3b82f6;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.info-icon:hover {
+  background: #2563eb;
+  transform: scale(1.1);
+}
+
+/* Make course-code position relative for absolute positioning of info icon */
+.course-code {
+  position: relative;
+  font-weight: bold;
+  color: #1f2937;
+  margin-bottom: 4px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .info-card-modal {
+    max-width: 95vw;
+    max-height: 90vh;
+    margin: 10px;
+  }
+  
+  .info-card-header {
+    padding: 16px 20px;
+  }
+  
+  .info-card-content {
+    padding: 20px;
+  }
+}
+
+.course-instructor {
+  font-size: 0.8rem;
+  color: #6b7280;
+  font-style: italic;
+  margin-top: 2px;
+}
+
+.scheduled-course .course-instructor {
+  font-size: 0.7rem;
+  color: #9ca3af;
+}
+

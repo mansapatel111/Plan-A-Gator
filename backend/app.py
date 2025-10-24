@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
+from course_scraper import get_course_info
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from models import db, User, Course, UserCompletedCourse, UserSchedule, ScheduleCourse
@@ -197,5 +198,31 @@ def update_user_info():
 #         return jsonify({'error': 'Failed to get db info', 'details': str(e)}), 500
 
 # # Run server
+
+@app.route('/get-course-info/<course_code>', methods=['GET'])
+def get_course_info_endpoint(course_code):
+    try:
+        course_info = get_course_info(course_code)
+        
+        return jsonify({
+            'success': True,
+            'course_info': course_info
+        })
+            
+    except Exception as e:
+        print(f"Error getting course info for {course_code}: {str(e)}")
+        # Return basic info even if scraping fails
+        return jsonify({
+            'success': True,
+            'course_info': {
+                'code': course_code,
+                'name': f"Course {course_code}",
+                'credits': 3,
+                'description': "Course information temporarily unavailable.",
+                'prerequisites': "Check with academic advisor",
+                'syllabus_url': None
+            }
+        })
+    
 if __name__ == "__main__":
     app.run(debug=os.getenv("DEBUG", "False") == "True")
