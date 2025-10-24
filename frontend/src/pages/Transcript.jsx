@@ -80,15 +80,17 @@ export default function Transcript() {
       alert('No user_id found — please sign in or sign up first');
       return;
     }
+    // localStorage.setItem("user_id", data.user_id);
+    navigate('/scheduler');
 
     // normalize parsed codes client-side too (trim spaces + uppercase)
-  //   const normalized = parsed.map((s) => (s || '').toString().replace(/\s+/g, '').toUpperCase()).filter(Boolean);
-  //   console.log('Sending normalized classes:', normalized);
-  //   const res = await fetch("http://127.0.0.1:5000/update-user-info", {
-  //     method: "POST",
-  //     headers: { "Content-Type": "application/json" },
-  //     body: JSON.stringify({ user_id, grade, college }),
-  //   });
+    const normalized = parsed.map((s) => (s || '').toString().replace(/\s+/g, '').toUpperCase()).filter(Boolean);
+    console.log('Sending normalized classes:', normalized);
+    const res = await fetch("http://127.0.0.1:5000/update-user-info", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id, grade, college }),
+    });
   //   try {
   //     const res2 = await fetch("http://127.0.0.1:5000/save-transcript", {
   //       method: "POST",
