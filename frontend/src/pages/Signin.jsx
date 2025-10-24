@@ -1,94 +1,42 @@
 import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
-import { useState } from "react";
 import "./Signin.css"
-
+import "./Scheduler";
 
 export default function Signin() {
-  const navigate = useNavigate();
+  const navigate = useNavigate();
 
-  const handleSigninClick = () => {
-    navigate("/scheduler");
-  }
+  const handleSigninClick = async () => {
+    const email = document.querySelector('input[placeholder="Enter your email"]').value;
+    const password = document.querySelector('input[placeholder="Enter your password"]').value;
 
-  const [formData, setFormData] = useState({
-      email: "",
-      password: "",
-    })
+    const res = await fetch("http://127.0.0.1:5000/signin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
 
-  const [errors, setErrors] = useState({});
+    const data = await res.json();
+    if (res.ok) {
+      localStorage.setItem("user_id", data.user_id);  // save logged-in user
+      navigate("/scheduler");
+    } else {
+      alert(data.error);
+    }
+  };
 
-  const [showPassword, setShowPassword] = useState(false);
+  return (
+    <div className="signin-page">
+      <div className="signin-card">
+        <h1>Sign In</h1>
 
-  const handleFormChange = (e) => {
-    setFormData({...formData, [e.target.name]: e.target.value})
-  }
+        <label>Email:</label>
+        <input type="email" placeholder="Enter your email" />
 
-  const handleFormSubmit = (e) => {
-      e.preventDefault();
-      let newErrors = {};
+        <label>Password:</label>
+        <input type="password" placeholder="Enter your password" />
 
-      if (!formData.email.trim()) {
-        newErrors.email = "Email is required";
-      }
-
-      if (!formData.password.trim()) {
-        newErrors.password = "Password is required";
-      }
-
-      setErrors(newErrors);
-
-      if (Object.keys(newErrors).length === 0) {
-        handleSigninClick();
-      }
-  }
-  const handleSigninClick = async () => {
-    const email = document.querySelector('input[placeholder="Enter your email"]').value;
-    const password = document.querySelector('input[placeholder="Enter your password"]').value;
-
-    const res = await fetch("http://127.0.0.1:5000/signin", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-
-    const data = await res.json();
-    if (res.ok) {
-      localStorage.setItem("user_id", data.user_id);  // save logged-in user
-      navigate("/scheduler");
-    } else {
-      alert(data.error);
-    }
-  };
-
-  return (
-    <div className="signin-page">
-      <t>Welcome to Plan-A-Gator!</t>
-      <div className="signin-card">
-        <h1>Sign In</h1>
-        <form onSubmit={handleFormSubmit}>
-          <div className="input-group">
-            <label>Email:</label>
-            <input type="email" name="email" placeholder="Enter your email" value={formData.email} onChange={handleFormChange}/>
-            {errors.email && <div className="error">{errors.email}</div>}
-          </div>
-          
-          <div className="input-group">
-            <label>Password:</label>
-            <div className="password-container">
-              <input type={showPassword ? "text" : "password"} name = "password" placeholder="Enter your password" value={formData.password} onChange={handleFormChange}/>
-              <button type="button" className="show-password-button" onClick={() => setShowPassword(!showPassword)}>{showPassword ? "Hide" : "Show"}</button>
-            </div>
-            {errors.password && <div className="error">{errors.password}</div>}
-          </div>
-          
-          <div className="signup-link">
-            <label>Don't have an account?</label> <Link to="/signup">Click here to sign up!</Link>
-          </div>
-
-          <button type="submit">Sign in</button>
-        </form>
-      </div>
-    </div>
-  );
+        <button onClick={handleSigninClick}>Sign in</button>
+      </div>
+    </div>
+  );
 }
