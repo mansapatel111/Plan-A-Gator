@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import React from "react";
+import { Button, Card, CardBody, Container, Section, Alert, LoadingSpinner, Badge } from "../components/UIComponents";
 import "./Scheduler.css";
 
 export default function Scheduler() {

@@ -1,140 +1,137 @@
-/* Transcript.css*/
-
-/* Full-page flex container */
 .transcript-page {
-  height: 100vh;                 
-  width: 100vw;                  
-  display: flex;
-  align-items: center;         
-  justify-content: center;        
-  background: linear-gradient(135deg, #fdf6f0, #e9e6f8, #ffffff);
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  overflow: hidden;
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--secondary-lavender-light), var(--neutral-white));
+  padding: var(--space-8) 0;
 }
 
-/* Full-screen centered card */
+.transcript-container {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
 .transcript-card {
+  width: 100%;
+  max-width: 100%;
+}
+
+.transcript-header {
+  text-align: center;
+  margin-bottom: var(--space-8);
+}
+
+.transcript-title {
+  font-size: var(--text-3xl);
+  font-weight: var(--font-bold);
+  color: var(--primary-purple-dark);
+  margin: 0 0 var(--space-3);
+}
+
+.transcript-subtitle {
+  font-size: var(--text-base);
+  color: var(--neutral-gray-600);
+  margin: 0;
+  line-height: var(--leading-relaxed);
+}
+
+.transcript-form {
   display: flex;
-  flex-direction: column;          
-  align-items: center;             
-  justify-content: flex-start;     
-  background: #ffffff;
-  border-radius: 1.5rem;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-  width: 60vw;                     
-  height: 80vh;                   
-  max-width: 1200px;               
-  padding: 2rem 2rem;
+  flex-direction: column;
+  gap: var(--space-6);
+  margin-bottom: var(--space-8);
+}
+
+.extracted-courses {
+  margin-top: var(--space-8);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--neutral-gray-200);
+}
+
+.courses-title {
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
+  color: var(--neutral-gray-900);
+  margin: 0 0 var(--space-4);
+}
+
+.courses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--space-3);
+}
+
+.course-badge {
+  background: linear-gradient(135deg, var(--secondary-lavender), var(--secondary-lavender-light));
+  color: var(--primary-purple-dark);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
   text-align: center;
-  overflow-y: auto;  
-  overflow-x: hidden;            
+  border: 1px solid var(--secondary-lavender-dark);
 }
 
-/* Title */
-.transcript-card h1 {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #a68fb5;
-  margin-bottom: 2rem;
-}
-
-/* Labels */
-.transcript-card label {
-  font-weight: 600;
-  color: #6b5b7a;
-  margin-bottom: 0.25rem;
-  align-self: flex-start;
-  
-}
-
-/* Dropdowns and input fields */
-.transcript-card select,
-.transcript-card input[type="file"] {
-  width: 100%;
-  padding: 0.75rem;
-  border: 2px solid #d6c6e0;
-  border-radius: 1rem;
-  margin-bottom: 1.25rem;
-  font-size: 1rem;
-  transition: all 0.3s ease;
+.transcript-footer {
+  margin-top: var(--space-8);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--neutral-gray-200);
   text-align: center;
-  background: #f0f0f0;
-  color: #6b5b7a; 
 }
-
-.transcript-card select:focus,
-.transcript-card input[type="file"]:focus {
-  outline: none;
-  border-color: #a68fb5;
-  box-shadow: 0 0 8px rgba(166, 143, 181, 0.3);
-}
-
-/* Parse Button */
-.transcript-card button {
-  width: 60%;
-  padding: 0.85rem;
-  background: linear-gradient(90deg, #a68fb5, #c3b0d5);
-  color: white;
-  font-weight: 600;
-  border: none;
-  border-radius: 1.5rem;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  margin-bottom: 1.5rem;
-}
-
-.transcript-card button:hover {
-  background: linear-gradient(90deg, #b390ca, #785c92);
-  transform: scale(1.03);
-  box-shadow: 0 5px 15px rgba(166, 143, 181, 0.25);
-}
-
-/* Extracted Courses */
-.transcript-card h2 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #a68fb5;
-  margin-bottom: 0.75rem;
-}
-
-.transcript-card ul {
-  list-style: disc;
-  padding-left: 1.5rem;
-  text-align: left;
-  color: #555;
-  max-height: 200px;
-  overflow-y: auto;
-  width: 100%;
-}
-
-/* Scrollbar style for course list */
-.transcript-card ul::-webkit-scrollbar {
-  width: 6px;
-}
-.transcript-card ul::-webkit-scrollbar-thumb {
-  background-color: #c3b0d5;
-  border-radius: 3px;
-}
-
-.transcript-card select,
-.transcript-card option {
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  font-weight: 500; 
-  color: #6b5b7a;  
-}
-
 
 .help-text {
-  text-align: center;
-  font-size: 0.95rem;
-  color: #a68fb5;
-  margin-top: 1rem;
+  font-size: var(--text-sm);
+  color: var(--neutral-gray-600);
+  margin: 0;
 }
 
-.help-text a {
-  color: #a68fb5;
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s ease;
-  text-decoration: underline;
+/* Responsive Design */
+@media (max-width: 768px) {
+  .transcript-page {
+    padding: var(--space-4) 0;
+  }
+  
+  .transcript-container {
+    max-width: 100%;
+    padding: 0 var(--space-4);
+  }
+  
+  .transcript-title {
+    font-size: var(--text-2xl);
+  }
+  
+  .transcript-subtitle {
+    font-size: var(--text-sm);
+  }
+  
+  .courses-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: var(--space-2);
+  }
+  
+  .course-badge {
+    font-size: var(--text-xs);
+    padding: var(--space-1) var(--space-2);
+  }
+}
+
+@media (max-width: 480px) {
+  .transcript-page {
+    padding: var(--space-2) 0;
+  }
+  
+  .transcript-container {
+    padding: 0 var(--space-3);
+  }
+  
+  .transcript-header {
+    margin-bottom: var(--space-6);
+  }
+  
+  .transcript-form {
+    gap: var(--space-4);
+  }
+  
+  .courses-grid {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  }
 }

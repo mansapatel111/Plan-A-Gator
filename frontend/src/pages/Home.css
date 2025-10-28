@@ -1,24 +1,22 @@
 .home-root {
   display: flex;
   flex-direction: column;
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  color: #1f2b3a;
   width: 100%;
+  min-height: 100vh;
 }
 
+/* Hero Section */
 .hero {
   position: relative;
-  width: 100vw;
-  min-height: 60vh;
-  background-image: url("/project-campus.webp");
+  width: 100%;
+  min-height: 70vh;
+  background-image: url("../assets/campus.webp");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
-  padding: 2rem 1.5rem 3rem;
-  box-sizing: border-box;
 }
 
 .hero-overlay {
@@ -46,144 +44,158 @@
   color: #fff;
   text-shadow: 0 12px 32px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,0.6);
   text-align: center;
+  padding: var(--space-8) var(--space-6);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .hero-title {
-  font-size: clamp(2rem, 1vw + 1.75rem, 2.8rem);
-  line-height: 1.2;
-  font-weight: 700;
+  font-size: clamp(2.5rem, 4vw, 4rem);
+  line-height: var(--leading-tight);
+  font-weight: var(--font-bold);
   color: #ffffff;
-  margin: 0 0 1rem;
+  margin: 0 0 var(--space-6);
 }
 
 .hero-subtitle {
-  font-size: 1.05rem;
-  line-height: 1.4;
-  font-weight: 400;
+  font-size: var(--text-xl);
+  line-height: var(--leading-relaxed);
+  font-weight: var(--font-normal);
   color: rgba(255,255,255,0.9);
   max-width: 46ch;
-  margin: 0 auto 1.5rem;
+  margin: 0 auto var(--space-8);
 }
 
 .hero-ctas {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
 }
 
-.hero-btn {
-  appearance: none;
-  border: 0;
-  border-radius: 0.6rem;
-  padding: 0.7rem 1rem;
-  font-size: 0.95rem;
-  font-weight: 600;
-  line-height: 1.2;
-  cursor: pointer;
-  text-decoration: none;
-  white-space: nowrap;
-  box-shadow: 0 16px 30px rgba(0,0,0,0.4),
-              0 4px 10px rgba(0,0,0,0.4);
-  border: 1px solid transparent;
-  transition: filter 0.15s ease, box-shadow 0.15s ease;
-}
-
-/* solid purple button */
-.hero-btn.primary {
-  background: #6b56a8;
-  color: #fff;
-  border: 1px solid rgba(255,255,255,0.2);
-}
-.hero-btn.primary:hover {
-  filter: brightness(1.07);
-  box-shadow: 0 20px 36px rgba(0,0,0,0.55);
-}
-
-/* lighter outline button */
-.hero-btn.secondary {
-  background: rgba(255,255,255,0.1);
-  color: #fff;
-  border: 1px solid rgba(255,255,255,0.4);
-  box-shadow: 0 16px 30px rgba(0,0,0,0.4),
-              0 4px 10px rgba(0,0,0,0.4);
-}
-.hero-btn.secondary:hover {
-  background: rgba(255,255,255,0.18);
-  box-shadow: 0 20px 36px rgba(0,0,0,0.55);
-}
-
-.hero-note {
-  margin: 0;
-  font-size: 0.8rem;
-  line-height: 1.4;
-  color: rgba(255,255,255,0.8);
-  text-align: center;
-}
-
-
-.features {
-  background: #ffffff;
-  box-shadow: 0 -24px 40px rgba(0,0,0,0.05);
-  padding: 2rem 1.5rem 3rem;
-  position: relative;
-  z-index: 2;
-}
-
-.features-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-
+/* Features Section */
+.features-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(320px,100%), 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--space-8);
+  margin: var(--space-16) 0;
 }
 
 .feature-card {
-  background: #ffffff;
-  border-radius: 0.75rem;
-  border: 1px solid rgba(107, 86, 168, 0.2);
-  box-shadow:
-    0 24px 40px rgba(34, 20, 80, 0.07),
-    0 4px 10px rgba(0,0,0,0.05);
+  text-align: center;
+  transition: transform var(--transition-normal);
+}
 
-  padding: 1.25rem 1rem 1.5rem;
-  color: #2d224d;
+.feature-card:hover {
+  transform: translateY(-4px);
 }
 
 .feature-icon {
-  font-size: 1.4rem;
-  line-height: 1;
-  margin-bottom: 0.5rem;
-  color: #6b56a8
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto var(--space-6);
+  background: linear-gradient(135deg, var(--secondary-lavender), var(--secondary-lavender-light));
+  border-radius: var(--radius-2xl);
+  color: var(--primary-purple);
 }
 
 .feature-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #2d224d;
-  margin: 0 0 0.5rem;
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
+  color: var(--neutral-gray-900);
+  margin: 0 0 var(--space-4);
 }
 
 .feature-desc {
-  font-size: 0.9rem;
-  line-height: 1.4;
-  color: #4a4761;
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+  color: var(--neutral-gray-600);
   margin: 0;
 }
 
-
+/* Footer */
 .home-footer {
-  background: radial-gradient(circle at 0% 0%, #f8f6ff 0%, #ffffff 60%);
-  border-top: 1px solid rgba(0,0,0,0.07);
-  padding: 1rem 1.5rem 2rem;
+  background: linear-gradient(135deg, var(--secondary-lavender-light), var(--neutral-white));
+  border-top: 1px solid var(--neutral-gray-200);
+  padding: var(--space-8) 0;
   text-align: center;
-  box-shadow: 0 -16px 32px rgba(0,0,0,0.04);
+  margin-top: auto;
 }
 
 .footer-text {
-  color: #6b5b7a;
-  font-size: 0.8rem;
+  color: var(--neutral-gray-500);
+  font-size: var(--text-sm);
   margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .hero {
+    min-height: 60vh;
+  }
+  
+  .hero-content {
+    padding: var(--space-6) 0;
+  }
+  
+  .hero-title {
+    font-size: clamp(2rem, 6vw, 3rem);
+    margin-bottom: var(--space-4);
+  }
+  
+  .hero-subtitle {
+    font-size: var(--text-lg);
+    margin-bottom: var(--space-6);
+  }
+  
+  .hero-ctas {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  
+  .features-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+    margin: var(--space-12) 0;
+  }
+  
+  .feature-icon {
+    width: 60px;
+    height: 60px;
+    margin-bottom: var(--space-4);
+  }
+  
+  .feature-title {
+    font-size: var(--text-lg);
+  }
+}
+
+@media (max-width: 480px) {
+  .hero {
+    min-height: 50vh;
+  }
+  
+  .hero-content {
+    padding: var(--space-4) 0;
+  }
+  
+  .hero-title {
+    font-size: clamp(1.75rem, 8vw, 2.5rem);
+  }
+  
+  .hero-subtitle {
+    font-size: var(--text-base);
+  }
+  
+  .features-grid {
+    margin: var(--space-8) 0;
+  }
 }
