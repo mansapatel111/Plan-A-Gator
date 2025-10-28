@@ -3,181 +3,217 @@ import { useNavigate } from "react-router-dom";
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import React from "react";
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import "./Scheduler.css";
 
 export default function Scheduler() {
-  const [draggedCourse, setDraggedCourse] = useState(null);
-  const [schedule, setSchedule] = useState({});
-  const [searchTerm, setSearchTerm] = useState("");
-  const [courseCategories, setCourseCategories] = useState({
-    "Core Classes": [],
-    "Technical Electives": [],
-    "General Education": []
-  });
+  const [draggedCourse, setDraggedCourse] = useState(null);
+  const [schedule, setSchedule] = useState({});
+  const [searchTerm, setSearchTerm] = useState("");
+  const [courseCategories, setCourseCategories] = useState({
+    "Core Classes": [],
+    "Technical Electives": [],
+    "General Education": []
+  });
+  const [courseInfo, setCourseInfo] = useState({});
+  const [loadingCourseInfo, setLoadingCourseInfo] = useState(new Set());
+  const [activeInfoCard, setActiveInfoCard] = useState(null);
   const scheduleRef = useRef(null);
+  const [savedSchedules, setSavedSchedules] = useState([]);
+  const [selectedSchedule, setSelectedSchedule] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [scheduleName, setScheduleName] = useState("");
+  const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
 
-  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-  const times = ["8:00 AM", "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", 
-                 "1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM"];
 
-  // Helper function to generate random times for courses
-  const generateRandomTime = () => {
-    const patterns = [
-      { days: ["Monday", "Wednesday", "Friday"], duration: 1 }, // MWF 1 hour
-      { days: ["Tuesday", "Thursday"], duration: 1.25 }, // TR 1.25 hours
-    ];
-    
-    const pattern = patterns[Math.floor(Math.random() * patterns.length)];
-    const startTimeIndex = Math.floor(Math.random() * (times.length - 2));
-    const startTime = times[startTimeIndex];
-    
-    return {
-      days: pattern.days,
-      startTime: startTime,
-      duration: pattern.duration
-    };
-  };
+  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+  const times = ["8:30 AM", "9:35 AM", "10:40 AM", "11:45 AM", "12:50 PM", 
+                 "1:55 PM", "2:55 PM", "3:55 PM", "4:55 PM", "5:55 PM"];
 
-  // Modified useEffect to include random times
-  useEffect(() => {
-    const fetchRecommendations = async () => {
-      try {
-        const user_id = localStorage.getItem('user_id');
-        const classes = localStorage.getItem('parsed_classes') || '';
-        console.log('Fetching recommendations for user:', user_id);
-        
-        const response = await fetch(`http://127.0.0.1:5000/get-course-recommendations?user_id=${user_id}&classes=${classes}`);
-        const data = await response.json();
-        console.log('Received data:', data);
-        
-        if (response.ok) {
-          if (!data.recommendations) {
-            console.error('No recommendations in response');
-            return;
-          }
+  // Helper function to generate random times for courses
+  const generateRandomTime = () => {
+    const patterns = [
+      { days: ["Monday", "Wednesday", "Friday"], duration: 0.50 }, // MWF 1 hour
+      { days: ["Tuesday", "Thursday"], duration: 1.50 }, // TR 1.25 hours
+    ];
+    
+    const pattern = patterns[Math.floor(Math.random() * patterns.length)];
+    const startTimeIndex = Math.floor(Math.random() * (times.length - 2));
+    const startTime = times[startTimeIndex];
+    
+    return {
+      days: pattern.days,
+      startTime: startTime,
+      duration: pattern.duration
+    };
+  };
 
-          const formattedCourses = {
-            "Core Classes": (data.recommendations.Core || []).map(code => {
-              const timeInfo = generateRandomTime();
-              return {
-                code,
-                name: `Course ${code}`,
-                credits: 3,
-                instructor: "TBD",
-                timeInfo: timeInfo,
-                time: `${timeInfo.days.map(d => d.slice(0, 2)).join('')} ${timeInfo.startTime}`
-              };
-            }),
-            "Technical Electives": (data.recommendations["Elective/eligible"] || []).map(code => {
-              const timeInfo = generateRandomTime();
-              return {
-                code,
-                name: `Course ${code}`,
-                credits: 3,
-                instructor: "TBD",
-                timeInfo: timeInfo,
-                time: `${timeInfo.days.map(d => d.slice(0, 2)).join('')} ${timeInfo.startTime}`
-              };
-            }),
-            "General Education": (data.recommendations.GenEd || []).map(code => {
-              const timeInfo = generateRandomTime();
-              return {
-                code,
-                name: `Course ${code}`,
-                credits: 3,
-                instructor: "TBD",
-                timeInfo: timeInfo,
-                time: `${timeInfo.days.map(d => d.slice(0, 2)).join('')} ${timeInfo.startTime}`
-              };
-            })
-          };
-          console.log('Formatted courses:', formattedCourses);
-          setCourseCategories(formattedCourses);
-        } else {
-          console.error('Failed to fetch recommendations:', data.error);
-        }
-      } catch (err) {
-        console.error('Error fetching recommendations:', err);
-      }
-    };
-    
-    fetchRecommendations();
+  // Function to fetch course information
+  const fetchCourseInfo = async (courseCode) => {
+    if (courseInfo[courseCode] || loadingCourseInfo.has(courseCode)) {
+      return;
+    }
+
+    setLoadingCourseInfo(prev => new Set(prev).add(courseCode));
+
+    try {
+      const response = await fetch(`http://127.0.0.1:5000/get-course-info/${courseCode}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setCourseInfo(prev => ({
+          ...prev,
+          [courseCode]: data.course_info
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching course info:', error);
+    } finally {
+      setLoadingCourseInfo(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(courseCode);
+        return newSet;
+      });
+    }
+  };
+
+  // Modified useEffect to include course info fetching
+  useEffect(() => {
+    const fetchRecommendations = async () => {
+      try {
+        const user_id = localStorage.getItem('user_id');
+        const classes = localStorage.getItem('parsed_classes') || '';
+        console.log('Fetching recommendations for user:', user_id);
+        
+        const response = await fetch(`http://127.0.0.1:5000/get-course-recommendations?user_id=${user_id}&classes=${classes}`);
+        const data = await response.json();
+        console.log('Received data:', data);
+        
+        if (response.ok) {
+          if (!data.recommendations) {
+            console.error('No recommendations in response');
+            return;
+          }
+
+          const formattedCourses = {
+            "Core Classes": (data.recommendations.Core || []).map(code => {
+              const timeInfo = generateRandomTime();
+              // Fetch course info for each course
+              fetchCourseInfo(code);
+              return {
+                code,
+                name: `Course ${code}`,
+                credits: 3,
+                instructor: "TBD",
+                timeInfo: timeInfo,
+                time: `${timeInfo.days.map(d => d.slice(0, 2)).join('')} ${timeInfo.startTime}`
+              };
+            }),
+            "Technical Electives": (data.recommendations["Elective/eligible"] || []).map(code => {
+              const timeInfo = generateRandomTime();
+              fetchCourseInfo(code);
+              return {
+                code,
+                name: `Course ${code}`,
+                credits: 3,
+                instructor: "TBD",
+                timeInfo: timeInfo,
+                time: `${timeInfo.days.map(d => d.slice(0, 2)).join('')} ${timeInfo.startTime}`
+              };
+            }),
+            "General Education": (data.recommendations.GenEd || []).map(code => {
+              const timeInfo = generateRandomTime();
+              fetchCourseInfo(code);
+              return {
+                code,
+                name: `Course ${code}`,
+                credits: 3,
+                instructor: "TBD",
+                timeInfo: timeInfo,
+                time: `${timeInfo.days.map(d => d.slice(0, 2)).join('')} ${timeInfo.startTime}`
+              };
+            })
+          };
+          console.log('Formatted courses:', formattedCourses);
+          setCourseCategories(formattedCourses);
+        } else {
+          console.error('Failed to fetch recommendations:', data.error);
+        }
+      } catch (err) {
+        console.error('Error fetching recommendations:', err);
+      }
+    };
+    
+    fetchRecommendations();
   }, [localStorage.getItem('parsed_classes')]);
 
-  const handleDragStart = (course) => {
-    setDraggedCourse(course);
-  };
+  const handleDragStart = (course) => {
+    setDraggedCourse(course);
+  };
 
-  const handleDragOver = (e) => {
-    e.preventDefault();
-  };
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
 
-
-const addCourseToSchedule = (course) => {
-  if (!course || !course.timeInfo) return;
-
-  const { days: courseDays, startTime } = course.timeInfo;
-
-
-  let hasConflict = false;
-  let conflictingCourse = null;
-  
-  for (const courseDay of courseDays) {
-    const key = `${courseDay}-${startTime}`;
-    if (schedule[key]) {
-      hasConflict = true;
-      conflictingCourse = schedule[key];
-      break;
+  const addCourseToSchedule = (course) => {
+    const newSchedule = { ...schedule };
+    const { days: courseDays, startTime } = course.timeInfo;
+    
+    // Find the time index
+    const timeIndex = times.indexOf(startTime);
+    
+    if (timeIndex !== -1) {
+      courseDays.forEach(day => {
+        const key = `${day}-${startTime}`;
+        newSchedule[key] = course;
+      });
+      
+      setSchedule(newSchedule);
     }
-  }
+  };
 
-  if (hasConflict) {
-    alert(`Time conflict! This course meets on ${courseDays.join('/')} at ${startTime}, but ${conflictingCourse.code} is already scheduled at that time.`);
-    return false;
-  }
-
- 
-  setSchedule((prev) => {
-    const newSchedule = { ...prev };
-    courseDays.forEach(courseDay => {
-      const key = `${courseDay}-${startTime}`;
-      newSchedule[key] = course;
-    });
-    return newSchedule;
-  });
-
-  return true;
-};
-
-    const handleCourseClick = (course) => {
+  const handleCourseClick = (course) => {
     addCourseToSchedule(course);
-    };
+  };
 
-  const handleDrop = (day, time) => {
-  if (!draggedCourse) return;
-  
-  addCourseToSchedule(draggedCourse);
-  setDraggedCourse(null);
-};
+  const handleInfoClick = (course, e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setActiveInfoCard(course.code);
+    // Fetch course info if not already loaded
+    fetchCourseInfo(course.code);
+  };
 
-  const handleRemoveCourse = (courseCode, e) => {
-    e.stopPropagation();
-    
-    // Remove all instances of this course from the schedule
-    setSchedule((prev) => {
-      const newSchedule = { ...prev };
-      Object.keys(newSchedule).forEach(key => {
-        if (newSchedule[key].code === courseCode) {
-          delete newSchedule[key];
-        }
-      });
-      return newSchedule;
-    });
-  };
+  const handleCloseInfoCard = (e) => {
+    e.stopPropagation();
+    setActiveInfoCard(null);
+  };
 
-  const handleClearSchedule = () => {
-    setSchedule({});
-  };
+  const handleDrop = (day, time) => {
+    if (draggedCourse) {
+      const key = `${day}-${time}`;
+      setSchedule(prev => ({
+        ...prev,
+        [key]: draggedCourse
+      }));
+      setDraggedCourse(null);
+    }
+  };
+
+  const handleRemoveCourse = (courseCode, e) => {
+    e.stopPropagation();
+    const newSchedule = { ...schedule };
+    Object.keys(newSchedule).forEach(key => {
+      if (newSchedule[key].code === courseCode) {
+        delete newSchedule[key];
+      }
+    });
+    setSchedule(newSchedule);
+  };
+
+  const handleClearSchedule = () => {
+    setSchedule({});
+  };
 
     const handleSaveSchedule = async () => {
         try {
@@ -249,48 +285,116 @@ const addCourseToSchedule = (course) => {
 
         // Remove temporary printing class
         scheduleRef.current.classList.remove('printing');
+
+        if (!scheduleName.trim()) {
+        alert("Please enter a name for your schedule");
+        return;
+        }
+        const newSchedule = {
+            id: Date.now(),
+            name: scheduleName,
+            schedule: { ...schedule },
+            credits: calculateTotalCredits(),
+            courses: countUniqueCourses(),
+            priority: savedSchedules.length + 1
+        };
+
+        setSavedSchedules(prev => [...prev, newSchedule]);
+        setScheduleName(""); 
+
         
     } catch (error) {
         console.error('PDF Generation Error:', error);
+        console.error('Error saving schedule:', error);
         alert(`Failed to generate PDF: ${error.message}`);
     }
     };
+//handle selecting a saved schedule  
+const handleScheduleClick = (savedSchedule) => {
+    const card = event.currentTarget;
+    const rect = card.getBoundingClientRect();
+    
+    setModalPosition({
+        top: rect.top,
+        left: rect.left
+    });
+    setSelectedSchedule(savedSchedule);
+    setShowModal(true);
+};
 
-  const calculateTotalCredits = () => {
-    const uniqueCourses = new Set();
-    Object.values(schedule).forEach((course) => {
-      uniqueCourses.add(course.code);
-    });
-    return Array.from(uniqueCourses).reduce((total, code) => {
-      const course = Object.values(courseCategories)
-        .flat()
-        .find((c) => c.code === code);
-      return total + (course?.credits || 0);
-    }, 0);
-  };
+const handleLoadSchedule = () => {
+    if (selectedSchedule) {
+        setSchedule(selectedSchedule.schedule);
+        setShowModal(false);
+    }
+};
 
-  const countUniqueCourses = () => {
-    const uniqueCourses = new Set();
-    Object.values(schedule).forEach((course) => {
-      uniqueCourses.add(course.code);
-    });
-    return uniqueCourses.size;
-  };
+const handleDragEnd = (result) => {
+    if (!result.destination) return;
 
-  const filteredCategories = Object.entries(courseCategories).reduce(
-    (acc, [category, courses]) => {
-      const filtered = courses.filter(
-        (course) =>
-          course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          course.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      if (filtered.length > 0) {
-        acc[category] = filtered;
-      }
-      return acc;
-    },
-    {}
-  );
+    const items = Array.from(savedSchedules);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    // Update priorities
+    items.forEach((item, index) => {
+        item.priority = index + 1;
+    });
+
+    setSavedSchedules(items);
+};
+
+const handlePriorityChange = (scheduleId, direction) => {
+    setSavedSchedules(prev => {
+        const schedules = [...prev];
+        const index = schedules.findIndex(s => s.id === scheduleId);
+        if (direction === 'up' && index > 0) {
+            [schedules[index], schedules[index - 1]] = [schedules[index - 1], schedules[index]];
+        } else if (direction === 'down' && index < schedules.length - 1) {
+            [schedules[index], schedules[index + 1]] = [schedules[index + 1], schedules[index]];
+        }
+        // Update priorities
+        return schedules.map((s, i) => ({ ...s, priority: i + 1 }));
+    });
+};
+//up until here
+
+  const calculateTotalCredits = () => {
+    const uniqueCourses = new Set();
+    Object.values(schedule).forEach(course => {
+      uniqueCourses.add(course.code);
+    });
+    
+    let totalCredits = 0;
+    uniqueCourses.forEach(courseCode => {
+      const course = Object.values(schedule).find(c => c.code === courseCode);
+      if (course) {
+        totalCredits += courseInfo[courseCode]?.credits || course.credits;
+      }
+    });
+    
+    return totalCredits;
+  };
+
+  const countUniqueCourses = () => {
+    const uniqueCourses = new Set();
+    Object.values(schedule).forEach(course => {
+      uniqueCourses.add(course.code);
+    });
+    return uniqueCourses.size;
+  };
+
+  const filteredCategories = Object.entries(courseCategories).reduce(
+    (acc, [category, courses]) => {
+      const filteredCourses = courses.filter(course =>
+        course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        course.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      acc[category] = filteredCourses;
+      return acc;
+    },
+    {}
+  );
 
   const navigate = useNavigate();
   const handleUpdateTranscript = async () => {
@@ -395,80 +499,304 @@ const addCourseToSchedule = (course) => {
               <button className="btn-clear" onClick={handleClearSchedule}>
                 Clear Schedule
               </button>
-              <button className="btn-save" onClick={handleSaveSchedule}>
+{/*               <button className="btn-save" onClick={handleSaveSchedule}>
                 Save Schedule
-              </button>
+              </button> */}
             </div>
           </div>
 
-          <div className="schedule-grid">
-            {/* Top-left corner */}
-            <div className="time-header">Time</div>
+          <div className="schedule-grid">
+            {/* Top-left corner */}
+            <div className="time-header">Time</div>
 
-            {/* Day headers */}
-            {days.map((day) => (
-              <div key={day} className="day-header">
-                {day}
-              </div>
-            ))}
+            {/* Day headers */}
+            {days.map((day) => (
+              <div key={day} className="day-header">
+                {day}
+              </div>
+            ))}
 
-            {/* Time slots and schedule cells */}
-            {times.map((time) => (
-              <React.Fragment key={time}>
-                <div className="time-slot">
-                  {time}
-                </div>
-                {days.map((day) => {
-                  const key = `${day}-${time}`;
-                  const course = schedule[key];
-                  
-                  return (
-                    <div
-                      key={key}
-                      className="schedule-cell"
-                      onDragOver={handleDragOver}
-                      onDrop={() => handleDrop(day, time)}
-                    >
-                      {course && (
-                        <div className="scheduled-course">
-                          <button
-                            className="remove-course"
-                            onClick={(e) => handleRemoveCourse(course.code, e)}
-                          >
-                            ×
-                          </button>
-                          <div>
-                            <div className="course-code">{course.code}</div>
-                            <div className="course-name">{course.name}</div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </React.Fragment>
-            ))}
-          </div>
+            {/* Time slots and schedule cells */}
+            {times.map((time) => (
+              <React.Fragment key={time}>
+                <div className="time-slot">
+                  {time}
+                </div>
+                {days.map((day) => {
+                  const key = `${day}-${time}`;
+                  const course = schedule[key];
+                  
+                  return (
+                    <div
+                      key={key}
+                      className="schedule-cell"
+                      onDragOver={handleDragOver}
+                      onDrop={() => handleDrop(day, time)}
+                    >
+                      {course && (
+                        <div className="scheduled-course">
+                          <button
+                            className="remove-course"
+                            onClick={(e) => handleRemoveCourse(course.code, e)}
+                          >
+                            ×
+                          </button>
+                          <div>
+                            <div className="course-code">{course.code}</div>
+                            <div className="course-name">
+                              {courseInfo[course.code]?.name || course.name}
+                            </div>
+                            <div className="course-instructor">
+                              {courseInfo[course.code]?.instructor || course.instructor}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </React.Fragment>
+            ))}
+          </div>
 
-          {/* Total Credits Section */}
-          <div className="total-credits">
-            <div>
-              <div className="total-credits-label">Schedule Summary</div>
-              <div className="credits-breakdown">
-                <div className="breakdown-item">
-                  <span className="breakdown-value">{countUniqueCourses()}</span>
-                  <span className="breakdown-label">Courses</span>
-                </div>
-                <div className="breakdown-item">
-                  <span className="breakdown-value">{calculateTotalCredits()}</span>
-                  <span className="breakdown-label">Credits</span>
-                </div>
-              </div>
-            </div>
-            <div className="total-credits-value">{calculateTotalCredits()} Credits</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+          {/* Total Credits Section */}
+          <div className="total-credits">
+            <div>
+              <div className="total-credits-label">Schedule Summary</div>
+              <div className="credits-breakdown">
+                <div className="breakdown-item">
+                  <span className="breakdown-value">{countUniqueCourses()}</span>
+                  <span className="breakdown-label">Courses</span>
+                </div>
+                <div className="breakdown-item">
+                  <span className="breakdown-value">{calculateTotalCredits()}</span>
+                  <span className="breakdown-label">Credits</span>
+                </div>
+              </div>
+            </div>
+            <div className="total-credits-value">{calculateTotalCredits()} Credits</div>
+          </div>
+
+        {/* <div className="saved-schedules-section">
+            <h3>Saved Schedules</h3>
+            <div className="schedule-input-group">
+                <input
+                    type="text"
+                    value={scheduleName}
+                    onChange={(e) => setScheduleName(e.target.value)}
+                    placeholder="Enter schedule name..."
+                    className="schedule-name-input"
+                />
+                <button className="btn-save" onClick={handleSaveSchedule}>
+                    Save Current Schedule
+                </button>
+            </div>
+            <div className="saved-schedules-container">
+                {savedSchedules.map((schedule) => (
+                    <div
+                        key={schedule.id}
+                        className="saved-schedule-card"
+                        onClick={() => handleScheduleClick(schedule)}
+                    >
+                        <div className="priority-badge">#{schedule.priority}</div>
+                        <h4>{schedule.name}</h4>
+                        <p>{schedule.courses} Courses</p>
+                        <p>{schedule.credits} Credits</p>
+                        <div className="priority-controls">
+                            <button
+                                className="priority-btn"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handlePriorityChange(schedule.id, 'up');
+                                }}
+                            >
+                                ↑
+                            </button>
+                            <button
+                                className="priority-btn"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handlePriorityChange(schedule.id, 'down');
+                                }}
+                            >
+                                ↓
+                            </button>
+                        </div>
+                    </div>
+                ))}
+            </div> */}
+        {/* </div> */}
+        </div>
+      </div>
+
+      {/* Info Card Modal */}
+      {activeInfoCard && (
+        <div className="info-card-overlay" onClick={handleCloseInfoCard}>
+          <div className="info-card-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="info-card-header">
+              <h3>{activeInfoCard}</h3>
+              <button className="info-card-close" onClick={handleCloseInfoCard}>
+                ×
+              </button>
+            </div>
+            <div className="info-card-content">
+              {courseInfo[activeInfoCard] ? (
+                <>
+                  <div className="info-section">
+                    <div className="info-label">Course Name</div>
+                    <div className="info-value">{courseInfo[activeInfoCard].name}</div>
+                  </div>
+                  
+                  <div className="info-section">
+                    <div className="info-label">Credits</div>
+                    <div className="info-value">{courseInfo[activeInfoCard].credits}</div>
+                  </div>
+                  
+                  <div className="info-section">
+                    <div className="info-label">Grading Scheme</div>
+                    <div className="info-value">{courseInfo[activeInfoCard].grading_scheme || "Letter Grade"}</div>
+                  </div>
+                  
+                  <div className="info-section">
+                    <div className="info-label">Instructor</div>
+                    <div className="info-value">{courseInfo[activeInfoCard].instructor || "TBD"}</div>
+                  </div>
+                  
+                  <div className="info-section">
+                    <div className="info-label">Description</div>
+                    <div className="info-value description">
+                      {courseInfo[activeInfoCard].description || "No description available."}
+                    </div>
+                  </div>
+                  
+                  {courseInfo[activeInfoCard].prerequisites && (
+                    <div className="info-section">
+                      <div className="info-label">Prerequisites</div>
+                      <div className="info-value">
+                        {courseInfo[activeInfoCard].prerequisites}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {courseInfo[activeInfoCard].syllabus_url && (
+                    <div className="info-section">
+                      <div className="info-label">Syllabus</div>
+                      <div className="info-value">
+                        <a 
+                          href={courseInfo[activeInfoCard].syllabus_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="syllabus-link-large"
+                        >
+                          View Course Syllabus →
+                        </a>
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : loadingCourseInfo.has(activeInfoCard) ? (
+                <div className="loading-info">
+                  <div className="loading-spinner"></div>
+                  <div>Loading course information...</div>
+                </div>
+              ) : (
+                <div className="info-section">
+                  <div className="info-value">Course information not available.</div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    {/* Saved Schedules Section */}
+    <div className="saved-schedules-section">
+        <h3>Saved Schedules</h3>
+        <div className="schedule-input-group">
+                <input
+                    type="text"
+                    value={scheduleName}
+                    onChange={(e) => setScheduleName(e.target.value)}
+                    placeholder="Enter schedule name..."
+                    className="schedule-name-input"
+                />
+                <button className="btn-save" onClick={handleSaveSchedule}>
+                    Save Current Schedule
+                </button>
+            </div>
+        <DragDropContext onDragEnd={handleDragEnd}>
+            <Droppable droppableId="schedules" direction="vertical">
+                {(provided) => (
+                    <div 
+                        className="saved-schedules-container"
+                        {...provided.droppableProps}
+                        ref={provided.innerRef}
+                    >
+                        {savedSchedules.map((schedule, index) => (
+                            <Draggable 
+                                key={schedule.id} 
+                                draggableId={schedule.id.toString()} 
+                                index={index}
+                            >
+                                {(provided) => (
+                                    <div
+                                        className="saved-schedule-card"
+                                        ref={provided.innerRef}
+                                        {...provided.draggableProps}
+                                        {...provided.dragHandleProps}
+                                        onClick={() => handleScheduleClick(schedule)}
+                                    >
+                                        <h4>{schedule.name}</h4>
+                                        <p>{schedule.credits} Credits</p>
+                                    </div>
+                                )}
+                            </Draggable>
+                        ))}
+                        {provided.placeholder}
+                    </div>
+                )}
+            </Droppable>
+        </DragDropContext>
+    </div>
+
+    {/* Schedule View Modal */}
+    {showModal && selectedSchedule && (
+    <div className="schedule-modal-overlay" onClick={() => setShowModal(false)}>
+        <div 
+            className="schedule-modal-content" 
+            onClick={e => e.stopPropagation()}
+            style={{
+                top: `${'saved-schedule-card'.top}px`,
+                left: `${'saved-schedule-card'.left}px`,
+            }}
+        >
+            <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
+            <h2>{selectedSchedule.name}</h2>
+            <div className="modal-schedule-preview">
+                <div className="preview-stats">
+                    <p>Total Courses: {selectedSchedule.courses}</p>
+                    <p>Total Credits: {selectedSchedule.credits}</p>
+                    
+                    {/* Add more details here */}
+                    <div className="course-list">
+                        {Object.values(selectedSchedule.schedule)
+                          // Filter unique courses by code
+                          .filter((course, index, self) => 
+                              index === self.findIndex(c => c.code === course.code)
+                          )
+                          .map((course, index) => (
+                              <div key={index} className="modal-course-item">
+                                  <span className="modal-course-name">{course.name}</span>
+                              </div>
+                          ))}
+                    </div>
+                </div>
+                <button className="load-schedule-btn" onClick={handleLoadSchedule}>
+                    Load This Schedule
+                </button>
+            </div>
+        </div>
+    </div>
+)}
+    </div>
+  );
 }
