@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import React from "react";
@@ -146,7 +147,7 @@ export default function Scheduler() {
     };
     
     fetchRecommendations();
-  }, []);
+  }, [localStorage.getItem('parsed_classes')]);
 
   const handleDragStart = (course) => {
     setDraggedCourse(course);
@@ -356,58 +357,100 @@ const handlePriorityChange = (scheduleId, direction) => {
     {}
   );
 
-  return (
-    <div className="scheduler-page">
-      <div className="scheduler-container">
-        {/* Left Sidebar - Available Courses */}
-        <div className="courses-sidebar">
-          <h2>Available Courses</h2>
-          
-          <div className="search-bar">
-            <input
-              type="text"
-              placeholder="Search courses..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
+  const navigate = useNavigate();
+  const handleUpdateTranscript = async () => {
+  setCourseCategories({
+    "Core Classes": [],
+    "Technical Electives": [],
+    "General Education": []
+  });
 
-          {Object.entries(filteredCategories).map(([category, courses]) => (
-            <div key={category} className="course-category">
-              <div className="category-title">{category}</div>
-              <div className="course-list">
-                {courses.map((course) => (
-                  <div
-                    key={course.code}
-                    className="course-card"
-                    draggable
-                    onDragStart={() => handleDragStart(course)}
-                    onClick={() => handleCourseClick(course)}
-                  >
-                    <div className="course-code">
-                      {course.code}
-                      <div 
-                        className="info-icon"
-                        onClick={(e) => handleInfoClick(course, e)}
-                      >
-                        i
-                      </div>
-                    </div>
-                    <div className="course-name">
-                      {courseInfo[course.code]?.name || course.name}
-                    </div>
-                    <div className="course-credits">
-                      {courseInfo[course.code]?.credits || course.credits} credits
-                    </div>
-                    <div className="course-instructor">
-                      {courseInfo[course.code]?.instructor || course.instructor}
-                    </div>
-                  </div>
-                ))}
+  setSchedule({});
+
+  localStorage.removeItem('parsed_classes');
+
+  navigate("/transcript");
+  }
+
+  return (
+    <div className="scheduler-page">
+      <div className="scheduler-container">
+        {/* Left Sidebar - Available Courses */}
+          <div className="sidebar-layout">
+            <div className="top-sidebar">
+              <div className="courses-sidebar">
+              <div className="transcript-row">
+                <span className="upload-text">Want to upload a new transcript?</span>
+                <button className="btn-transcript" onClick={handleUpdateTranscript}>
+                  Update Transcript
+                </button>
               </div>
             </div>
-          ))}
-        </div>
+            </div>
+            <div className="courses-sidebar">
+            <h2>Available Courses</h2>  
+            <div className="search-bar">
+              <input
+                type="text"
+                placeholder="Search courses..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+
+            {Object.entries(filteredCategories).map(([category, courses]) => (
+              <div key={category} className="course-category">
+                <div className="category-title">{category}</div>
+                <div className="course-list">
+                  {courses.map((course) => (
+                    <div
+                      key={course.code}
+                      className="course-card"
+                      draggable
+                      onDragStart={() => handleDragStart(course)}
+                      onClick={() => handleCourseClick(course)}
+                    >
+                      <div className="course-code">
+                        <span>{course.code}</span>
+                        <div 
+                          className="info-icon"
+                          onMouseEnter={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          i
+                          <div className="info-tooltip">
+                            <div className="tooltip-title">{course.code}</div>
+                            <div className="tooltip-content">
+                              <div className="tooltip-row">
+                                <span className="tooltip-label">Name: </span>
+                                {course.name}
+                              </div>
+                              <div className="tooltip-row">
+                                <span className="tooltip-label">Credits: </span>
+                                {course.credits}
+                              </div>
+                              <div className="tooltip-row">
+                                <span className="tooltip-label">Instructor: </span>
+                                {course.instructor}
+                              </div>
+                              <div className="tooltip-row">
+                                <span className="tooltip-label">Time: </span>
+                                {course.time}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="course-name">{course.name}</div>
+                      <div className="course-credits">{course.credits} credits • {course.time}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          </div>
+          
 
         {/* Right Side - Weekly Schedule */}
         <div className="schedule-area" ref={scheduleRef}>
