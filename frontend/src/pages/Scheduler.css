@@ -2,19 +2,21 @@
 
 .scheduler-page {
   height: 100vh;
+  min-height: calc(100vh - 3.5rem);
   width: 100vw;
   display: flex;
   background: linear-gradient(135deg, #fdf6f0, #e9e6f8, #ffffff);
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .scheduler-container {
   display: flex;
   width: 100%;
-  height: 100%;
+  height: auto;
   padding: 2rem;
   gap: 1.5rem;
+  box-sizing: border-box;
 }
 
 /* Left Sidebar - Course Categories */
@@ -466,6 +468,7 @@
   background-color: #f0f0f0;
 }
 
+.navbar {
 .courses-sidebar:last-child {
   flex-grow: 1;            
 }
@@ -518,6 +521,83 @@
   top: 0;
   left: 0;
   right: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: #ffffffcc;
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+  padding: 0.75rem 2.5rem;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  box-sizing: border-box;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+/* left section (logo area) */
+.navbar-left {
+  display: flex;
+  align-items: center;
+}
+
+/* PLAN-A-GATOR LOGO */
+.navbar-logo {
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-decoration: none;
+  color: #4b3a73;
+  opacity: 1 !important;
+  visibility: visible;
+}
+
+.navbar-logo:visited {
+  color: #4b3a73;
+}
+
+.navbar-logo:hover {
+  color: #6b56a8;
+}
+
+/* right section */
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-right: 1rem;
+}
+
+/* call-to-action buttons */
+.navbar-cta {
+  font-size: 0.85rem;
+  font-weight: 500;
+  line-height: 1;
+  text-decoration: none;
+  border-radius: 0.6rem;
+  padding: 0.5rem 0.8rem;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, background-color 0.15s ease,
+    border-color 0.15s ease, color 0.15s ease;
+    white-space: nowrap;
+}
+
+.navbar-cta.primary {
+  background-color: #6b56a8;
+  color: #fff;
+  box-shadow: 0 6px 20px rgba(107, 86, 168, 0.25);
+}
+
+.navbar-cta.primary:hover {
+  filter: brightness(1.05);
+  box-shadow: 0 8px 24px rgba(107, 86, 168, 0.35);
+}
+
+.page-content{
+  padding-top: 3.5rem;
+  min-height: 100vh;
+  height: auto;
+}
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
