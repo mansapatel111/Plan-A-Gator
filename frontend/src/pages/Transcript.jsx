@@ -179,13 +179,13 @@ export default function Transcript() {
 
         {/* Help Link */}
         <p className="help-text">
-          Need help getting your transcript PDF?{" "}
+          Need help downloading your transcript?{" "}
           <a
             href="https://www.floridashines.org/check-your-progress" 
             target="_blank"
             rel="noopener noreferrer"
           >
-            Click here
+            Click here!
           </a>
         </p>
       </div>
