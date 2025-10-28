@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import React from "react";
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import "./Scheduler.css";
 
 export default function Scheduler() {
