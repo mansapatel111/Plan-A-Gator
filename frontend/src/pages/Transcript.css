@@ -58,6 +58,8 @@
   font-size: 1rem;
   transition: all 0.3s ease;
   text-align: center;
+  background: #f0f0f0;
+  color: #6b5b7a; 
 }
 
 .transcript-card select:focus,
@@ -82,6 +84,7 @@
 }
 
 .transcript-card button:hover {
+  background: linear-gradient(90deg, #b390ca, #785c92);
   transform: scale(1.03);
   box-shadow: 0 5px 15px rgba(166, 143, 181, 0.25);
 }
@@ -118,4 +121,20 @@
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   font-weight: 500; 
   color: #6b5b7a;  
+}
+
+
+.help-text {
+  text-align: center;
+  font-size: 0.95rem;
+  color: #a68fb5;
+  margin-top: 1rem;
+}
+
+.help-text a {
+  color: #a68fb5;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+  text-decoration: underline;
 }
