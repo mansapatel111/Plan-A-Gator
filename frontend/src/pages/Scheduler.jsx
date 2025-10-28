@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import React from "react";
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import "./Scheduler.css";
 
 export default function Scheduler() {
@@ -18,16 +17,19 @@ export default function Scheduler() {
   const [loadingCourseInfo, setLoadingCourseInfo] = useState(new Set());
   const [activeInfoCard, setActiveInfoCard] = useState(null);
   const scheduleRef = useRef(null);
+
+  // saved schedule variables
   const [savedSchedules, setSavedSchedules] = useState([]);
   const [selectedSchedule, setSelectedSchedule] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [scheduleName, setScheduleName] = useState("");
   const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
 
-
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
   const times = ["8:30 AM", "9:35 AM", "10:40 AM", "11:45 AM", "12:50 PM", 
                  "1:55 PM", "2:55 PM", "3:55 PM", "4:55 PM", "5:55 PM"];
+
+  
 
   // Helper function to generate random times for courses
   const generateRandomTime = () => {
@@ -214,81 +216,59 @@ export default function Scheduler() {
     setSchedule({});
   };
 
-    const handleSaveSchedule = async () => {
-        try {
-        // Make sure we have a reference to the schedule element
+  const handleSaveSchedule = async () => {
+    if (!scheduleName.trim()) {
+        alert("Please enter a name for your schedule");
+        return;
+    }
+
+    try {
+        // Create canvas from the schedule element
         if (!scheduleRef.current) {
-        throw new Error('Schedule element not found');
+            throw new Error('Schedule element not found');
         }
 
-        // Add a temporary class for better PDF capture
-        scheduleRef.current.classList.add('printing');
-
-        // Create canvas with better settings
         const canvas = await html2canvas(scheduleRef.current, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        logging: true, // Enable logging to debug issues
-        onclone: (document) => {
-            // Any cleanup needed before capture
-            const element = document.querySelector('.schedule-grid');
-            if (element) {
-            element.style.backgroundColor = '#ffffff';
-            }
-        }
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#ffffff',
+            logging: false,
         });
 
-        // Create PDF with proper dimensions
-        const pdfWidth = 210; // A4 width in mm
-        const pdfHeight = 297; // A4 height in mm
+        // Create PDF
+        const pdfWidth = 210;
+        const pdfHeight = 297;
         const aspectRatio = canvas.height / canvas.width;
-        const imgWidth = pdfWidth - 20; // Leave 10mm margin on each side
+        const imgWidth = pdfWidth - 20;
         const imgHeight = imgWidth * aspectRatio;
 
-        // Initialize PDF
         const pdf = new jsPDF({
-        orientation: imgHeight > pdfWidth ? 'portrait' : 'landscape',
-        unit: 'mm',
-        format: 'a4'
+            orientation: imgHeight > pdfWidth ? 'portrait' : 'landscape',
+            unit: 'mm',
+            format: 'a4'
         });
 
-        // Add title
         pdf.setFontSize(16);
         pdf.text('Weekly Schedule', pdfWidth / 2, 15, { align: 'center' });
 
-        // Add the schedule image
-        try {
         pdf.addImage(
             canvas.toDataURL('image/jpeg', 1.0),
             'JPEG',
-            10, // Left margin
-            25, // Top margin after title
+            10,
+            25,
             imgWidth,
             imgHeight
         );
 
-        // Add schedule details at bottom
         pdf.setFontSize(12);
         const bottomY = Math.min(imgHeight + 35, pdfHeight - 15);
         pdf.text(`Total Courses: ${countUniqueCourses()}`, 10, bottomY);
         pdf.text(`Total Credits: ${calculateTotalCredits()}`, 10, bottomY + 7);
 
-        // Save the PDF
-        pdf.save(`schedule-${new Date().toISOString().split('T')[0]}.pdf`);
-        } catch (imageError) {
-        console.error('Error adding image to PDF:', imageError);
-        throw new Error('Failed to generate PDF: Image processing error');
-        }
+        pdf.save(`${scheduleName}-${new Date().toISOString().split('T')[0]}.pdf`);
 
-        // Remove temporary printing class
-        scheduleRef.current.classList.remove('printing');
-
-        if (!scheduleName.trim()) {
-        alert("Please enter a name for your schedule");
-        return;
-        }
+        // Save schedule to state
         const newSchedule = {
             id: Date.now(),
             name: scheduleName,
@@ -299,17 +279,15 @@ export default function Scheduler() {
         };
 
         setSavedSchedules(prev => [...prev, newSchedule]);
-        setScheduleName(""); 
+        setScheduleName("");
 
-        
     } catch (error) {
-        console.error('PDF Generation Error:', error);
         console.error('Error saving schedule:', error);
         alert(`Failed to generate PDF: ${error.message}`);
     }
-    };
-//handle selecting a saved schedule  
-const handleScheduleClick = (savedSchedule) => {
+};
+
+const handleScheduleClick = (savedSchedule, event) => {
     const card = event.currentTarget;
     const rect = card.getBoundingClientRect();
     
@@ -328,21 +306,6 @@ const handleLoadSchedule = () => {
     }
 };
 
-const handleDragEnd = (result) => {
-    if (!result.destination) return;
-
-    const items = Array.from(savedSchedules);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-
-    // Update priorities
-    items.forEach((item, index) => {
-        item.priority = index + 1;
-    });
-
-    setSavedSchedules(items);
-};
-
 const handlePriorityChange = (scheduleId, direction) => {
     setSavedSchedules(prev => {
         const schedules = [...prev];
@@ -352,11 +315,9 @@ const handlePriorityChange = (scheduleId, direction) => {
         } else if (direction === 'down' && index < schedules.length - 1) {
             [schedules[index], schedules[index + 1]] = [schedules[index + 1], schedules[index]];
         }
-        // Update priorities
         return schedules.map((s, i) => ({ ...s, priority: i + 1 }));
     });
 };
-//up until here
 
   const calculateTotalCredits = () => {
     const uniqueCourses = new Set();
@@ -533,8 +494,9 @@ const handlePriorityChange = (scheduleId, direction) => {
             </div>
             <div className="total-credits-value">{calculateTotalCredits()} Credits</div>
           </div>
-
-        {/* <div className="saved-schedules-section">
+        </div>
+        {/* Saved Schedules Section */}
+        <div className="saved-schedules-section">
             <h3>Saved Schedules</h3>
             <div className="schedule-input-group">
                 <input
@@ -553,7 +515,7 @@ const handlePriorityChange = (scheduleId, direction) => {
                     <div
                         key={schedule.id}
                         className="saved-schedule-card"
-                        onClick={() => handleScheduleClick(schedule)}
+                        onClick={(event) => handleScheduleClick(schedule, event)}
                     >
                         <div className="priority-badge">#{schedule.priority}</div>
                         <h4>{schedule.name}</h4>
@@ -581,9 +543,42 @@ const handlePriorityChange = (scheduleId, direction) => {
                         </div>
                     </div>
                 ))}
-            </div> */}
-        {/* </div> */}
+            </div>
         </div>
+
+        {/* Schedule Modal */}
+        {showModal && selectedSchedule && (
+            <div className="schedule-modal-overlay" onClick={() => setShowModal(false)}>
+                <div 
+                    className="schedule-modal-content" 
+                    onClick={e => e.stopPropagation()}
+                >
+                    <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
+                    <h2>{selectedSchedule.name}</h2>
+                    <div className="modal-schedule-preview">
+                        <div className="preview-stats">
+                            <p>Total Courses: {selectedSchedule.courses}</p>
+                            <p>Total Credits: {selectedSchedule.credits}</p>
+                            
+                            <div className="course-list">
+                                {Object.values(selectedSchedule.schedule)
+                                    .filter((course, index, self) => 
+                                        index === self.findIndex(c => c.code === course.code)
+                                    )
+                                    .map((course, index) => (
+                                        <div key={index} className="modal-course-item">
+                                            <span className="modal-course-name">{course.name}</span>
+                                        </div>
+                                    ))}
+                            </div>
+                        </div>
+                        <button className="load-schedule-btn" onClick={handleLoadSchedule}>
+                            Load This Schedule
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
       </div>
 
       {/* Info Card Modal */}
@@ -665,95 +660,6 @@ const handlePriorityChange = (scheduleId, direction) => {
           </div>
         </div>
       )}
-    {/* Saved Schedules Section */}
-    <div className="saved-schedules-section">
-        <h3>Saved Schedules</h3>
-        <div className="schedule-input-group">
-                <input
-                    type="text"
-                    value={scheduleName}
-                    onChange={(e) => setScheduleName(e.target.value)}
-                    placeholder="Enter schedule name..."
-                    className="schedule-name-input"
-                />
-                <button className="btn-save" onClick={handleSaveSchedule}>
-                    Save Current Schedule
-                </button>
-            </div>
-        <DragDropContext onDragEnd={handleDragEnd}>
-            <Droppable droppableId="schedules" direction="vertical">
-                {(provided) => (
-                    <div 
-                        className="saved-schedules-container"
-                        {...provided.droppableProps}
-                        ref={provided.innerRef}
-                    >
-                        {savedSchedules.map((schedule, index) => (
-                            <Draggable 
-                                key={schedule.id} 
-                                draggableId={schedule.id.toString()} 
-                                index={index}
-                            >
-                                {(provided) => (
-                                    <div
-                                        className="saved-schedule-card"
-                                        ref={provided.innerRef}
-                                        {...provided.draggableProps}
-                                        {...provided.dragHandleProps}
-                                        onClick={() => handleScheduleClick(schedule)}
-                                    >
-                                        <h4>{schedule.name}</h4>
-                                        <p>{schedule.credits} Credits</p>
-                                    </div>
-                                )}
-                            </Draggable>
-                        ))}
-                        {provided.placeholder}
-                    </div>
-                )}
-            </Droppable>
-        </DragDropContext>
-    </div>
-
-    {/* Schedule View Modal */}
-    {showModal && selectedSchedule && (
-    <div className="schedule-modal-overlay" onClick={() => setShowModal(false)}>
-        <div 
-            className="schedule-modal-content" 
-            onClick={e => e.stopPropagation()}
-            style={{
-                top: `${'saved-schedule-card'.top}px`,
-                left: `${'saved-schedule-card'.left}px`,
-            }}
-        >
-            <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
-            <h2>{selectedSchedule.name}</h2>
-            <div className="modal-schedule-preview">
-                <div className="preview-stats">
-                    <p>Total Courses: {selectedSchedule.courses}</p>
-                    <p>Total Credits: {selectedSchedule.credits}</p>
-                    
-                    {/* Add more details here */}
-                    <div className="course-list">
-                        {Object.values(selectedSchedule.schedule)
-                          // Filter unique courses by code
-                          .filter((course, index, self) => 
-                              index === self.findIndex(c => c.code === course.code)
-                          )
-                          .map((course, index) => (
-                              <div key={index} className="modal-course-item">
-                                  <span className="modal-course-name">{course.name}</span>
-                              </div>
-                          ))}
-                    </div>
-                </div>
-                <button className="load-schedule-btn" onClick={handleLoadSchedule}>
-                    Load This Schedule
-                </button>
-            </div>
-        </div>
-    </div>
-)}
     </div>
   );
 }
