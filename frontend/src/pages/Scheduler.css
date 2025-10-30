@@ -1325,6 +1325,22 @@
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
+.syllabus-link-small {
+  display: inline-flex;
+  align-items: center;
+  color: #3b82f6;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  padding: 2px 0;
+}
+
+.syllabus-link-small:hover {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
 .loading-info {
   display: flex;
   flex-direction: column;
