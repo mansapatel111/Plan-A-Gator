@@ -612,9 +612,7 @@ export default function Scheduler() {
                             <div className="course-name">
                               {courseInfo[course.code]?.name || course.name}
                             </div>
-                            <div className="course-instructor">
-                              {courseInfo[course.code]?.instructor || course.instructor}
-                            </div>
+                            
                           </div>
                         </div>
                       )}

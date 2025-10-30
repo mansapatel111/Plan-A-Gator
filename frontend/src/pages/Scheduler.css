@@ -1068,10 +1068,6 @@
   cursor: pointer;
 }
 
-.scheduled-course .course-instructor {
-  font-size: var(--text-xs);
-  color: #9ca3af;
-}
 
 .scheduled-course:hover {
   opacity: 0.9;
@@ -1098,13 +1094,13 @@
 
 
 .scheduled-course .course-code {
-  color: var(--neutral-white);
+  color: rgba(0, 0, 0, 0.9);
   font-size: var(--text-sm);
   font-weight: var(--font-bold);
 }
 
 .scheduled-course .course-name {
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(0, 0, 0, 0.9);
   font-size: var(--text-xs);
 }
 
