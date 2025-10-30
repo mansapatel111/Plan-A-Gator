@@ -30,3 +30,4 @@ Thumbs.db
 # Keeping this commented until everyones done with setup, pls comment after
 # =========================
 # **/.env
+.env
