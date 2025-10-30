@@ -1,13 +1,744 @@
-/* Scheduler.css */
+/* Scheduler.css - Updated for Design System */
 
 .scheduler-page {
-  height: 100vh;
-  min-height: calc(100vh - 3.5rem);
+  min-height: 100vh;
   width: 100vw;
   display: flex;
-  background: linear-gradient(135deg, #fdf6f0, #e9e6f8, #ffffff);
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  background: linear-gradient(135deg, var(--secondary-lavender-light), var(--neutral-white));
+  font-family: var(--font-family-primary);
   overflow: visible;
+}
+
+.scheduler-container {
+  display: flex;
+  width: 100%;
+  height: auto;
+  padding: var(--space-6);
+  gap: var(--space-6);
+  box-sizing: border-box;
+}
+
+/* Left Sidebar - Course Categories */
+.courses-sidebar {
+  flex: 0 0 350px;
+  background: var(--neutral-white);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-lg);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);         
+}
+
+.courses-sidebar h2 {
+  font-size: var(--text-xl);
+  color: var(--primary-purple-light);
+  margin-bottom: var(--space-2);
+  font-weight: var(--font-semibold);
+}
+
+.course-category {
+  margin-bottom: var(--space-4);
+}
+
+.category-title {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--primary-purple-dark);
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 2px solid var(--secondary-lavender-dark);
+}
+
+.course-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.course-card {
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  cursor: grab;
+  transition: all var(--transition-fast);
+  user-select: none;
+  position: relative;
+  z-index: 1;
+}
+
+.course-card.core {
+  background: linear-gradient(135deg, #c3b4f3, #e3d9ff);
+  border: 2px solid #9d7af5;
+}
+
+.course-card.elective {
+  background: linear-gradient(135deg, #9fd8df, #c8f1f5);
+  border: 2px solid #6bbbc6;
+}
+
+.course-card.gened {
+  background: linear-gradient(135deg,#66f99e, #7eebad);
+  border: 2px solid #79e37a;
+}
+
+/* Hover effects */
+.course-card.core:hover {
+  border-color: #b197f5;
+  box-shadow: 0 4px 12px rgba(157, 122, 245, 0.3);
+}
+
+.course-card.elective:hover {
+  border-color: #63c1cd;
+  box-shadow: 0 4px 12px rgba(107, 187, 198, 0.3);
+}
+
+.course-card.gened:hover {
+  border-color: #79e37a;
+  box-shadow: 0 4px 12px rgba(243, 164, 101, 0.3);
+}
+
+
+.course-card:active {
+  cursor: grabbing;
+}
+
+.course-card.dragging {
+  opacity: 0.5;
+  cursor: grabbing;
+}
+
+.course-code {
+  font-weight: var(--font-bold);
+  color: var(--primary-purple-dark);
+  font-size: var(--text-sm);
+  margin-bottom: var(--space-1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.course-name {
+  font-size: var(--text-sm);
+  color: var(--neutral-gray-600);
+  line-height: var(--leading-snug);
+}
+
+.course-credits {
+  font-size: var(--text-xs);
+  color: var(--neutral-gray-500);
+  margin-top: var(--space-1);
+}
+
+/* Info Icon */
+.info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  background: var(--secondary-lavender-dark);
+  color: var(--primary-purple-dark);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  cursor: help;
+  position: relative;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.info-icon:hover {
+  background: var(--primary-purple-light);
+  color: var(--neutral-white);
+  transform: scale(1.15);
+}
+
+.info-tooltip {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  right: 0;
+  background: var(--neutral-white);
+  border: 2px solid var(--primary-purple-light);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  min-width: 220px;
+  max-width: 280px;
+  box-shadow: var(--shadow-xl);
+  z-index: 1001;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--transition-fast), visibility var(--transition-fast);
+  pointer-events: none;
+}
+
+.info-icon:hover .info-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.info-tooltip::before {
+  content: "";
+  position: absolute;
+  top: 100%;
+  right: 8px;
+  border: 7px solid transparent;
+  border-top-color: var(--primary-purple-light);
+}
+
+.info-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  right: 10px;
+  border: 5px solid transparent;
+  border-top-color: var(--neutral-white);
+  margin-bottom: 2px;
+}
+
+.tooltip-title {
+  font-weight: var(--font-bold);
+  color: var(--primary-purple-dark);
+  font-size: var(--text-sm);
+  margin-bottom: var(--space-2);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--secondary-lavender);
+}
+
+.tooltip-content {
+  font-size: var(--text-xs);
+  color: var(--neutral-gray-600);
+  line-height: var(--leading-relaxed);
+}
+
+.tooltip-row {
+  margin-bottom: var(--space-1);
+}
+
+.tooltip-label {
+  font-weight: var(--font-semibold);
+  color: var(--primary-purple-dark);
+}
+
+/* Right Side - Weekly Schedule */
+.schedule-area {
+  flex: 1;
+  background: var(--neutral-white);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-lg);
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.schedule-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-6);
+}
+
+.schedule-header h2 {
+  font-size: var(--text-2xl);
+  color: var(--primary-purple-light);
+  font-weight: var(--font-semibold);
+}
+
+.schedule-actions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+/* Schedule Grid */
+.schedule-grid {
+  display: grid;
+  grid-template-columns: 80px repeat(5, 1fr);
+  gap: 1px;
+  background: var(--secondary-lavender-dark);
+  border-radius: var(--radius-xl);
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 0 1 auto;
+  max-height: 450px;
+}
+
+.schedule-grid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.schedule-grid::-webkit-scrollbar-thumb {
+  background-color: var(--primary-purple-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.schedule-grid::-webkit-scrollbar-track {
+  background-color: var(--neutral-gray-100);
+}
+
+.schedule-grid > div {
+  background: var(--neutral-white);
+  padding: var(--space-3);
+}
+
+.time-header,
+.day-header {
+  background: linear-gradient(135deg, var(--secondary-lavender), var(--secondary-lavender-light));
+  font-weight: var(--font-semibold);
+  color: var(--primary-purple-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: var(--text-sm);
+}
+
+.time-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-xs);
+  color: var(--neutral-gray-500);
+  background: var(--neutral-gray-50);
+}
+
+.schedule-cell {
+  position: relative;
+  height: 80px; /* base slot height */
+  transition: background var(--transition-fast);
+  overflow: visible; /* allow overlapping course blocks to show outside */
+}
+
+
+
+.remove-course {
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-1);
+  background: rgba(255, 255, 255, 0.3);
+  border: none;
+  color: var(--neutral-white);
+  border-radius: var(--radius-full);
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: var(--text-xs);
+  transition: all var(--transition-fast);
+}
+
+.remove-course:hover {
+  background: rgba(255, 255, 255, 0.5);
+  transform: scale(1.1);
+}
+
+/* Search Bar */
+.search-bar {
+  margin-bottom: var(--space-4);
+  align-self: center;
+  width: 92%;
+  transform: translateX(-4%);
+}
+
+.search-bar input {
+  width: 100%;
+  padding: var(--space-3);
+  border: 2px solid var(--secondary-lavender-dark);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-sm);
+  transition: all var(--transition-normal);
+  background: var(--neutral-gray-50);
+  color: var(--primary-purple-dark); 
+}
+
+.search-bar input:focus {
+  outline: none;
+  border-color: var(--primary-purple-light);
+  box-shadow: 0 0 8px rgba(166, 143, 181, 0.3);
+}
+
+/* Total Credits Section */
+.total-credits {
+  margin-top: var(--space-4);
+  padding: var(--space-3) var(--space-5);
+  background: linear-gradient(135deg, var(--secondary-lavender), var(--secondary-lavender-light));
+  border-radius: var(--radius-lg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 2px solid var(--secondary-lavender-dark);
+}
+
+.total-credits-label {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--primary-purple-dark);
+}
+
+.total-credits-value {
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--primary-purple-light);
+}
+
+.credits-breakdown {
+  display: flex;
+  gap: var(--space-6);
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--primary-purple-dark);
+}
+
+.breakdown-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.breakdown-label {
+  font-size: var(--text-xs);
+  color: var(--neutral-gray-500);
+}
+
+.breakdown-value {
+  font-weight: var(--font-semibold);
+  font-size: var(--text-sm);
+  color: var(--primary-purple-dark);
+}
+
+/* Scrollbar styling */
+.courses-sidebar::-webkit-scrollbar,
+.schedule-area::-webkit-scrollbar {
+  width: 8px;
+}
+
+.courses-sidebar::-webkit-scrollbar-thumb,
+.schedule-area::-webkit-scrollbar-thumb {
+  background-color: var(--primary-purple-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.courses-sidebar::-webkit-scrollbar-track,
+.schedule-area::-webkit-scrollbar-track {
+  background-color: var(--neutral-gray-100);
+}
+
+.transcript-row {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.upload-text {
+  font-size: var(--text-sm);
+  color: var(--primary-purple-dark);
+}
+
+.sidebar-layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);    
+  height: 100vh;
+}
+
+.top-sidebar {
+  flex-shrink: 0;
+}
+
+.course-instructor {
+  font-size: var(--text-xs);
+  color: var(--neutral-gray-500);
+  font-style: italic;
+  margin-top: 2px;
+}
+
+
+/* Saved Schedules Section - Right Sidebar */
+.saved-schedules-section {
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 200px;
+    height: 88vh;
+    padding: var(--space-4);
+    background: linear-gradient(135deg, var(--secondary-lavender), var(--secondary-lavender-light));
+    border-radius: var(--radius-xl);
+    border: 2px solid var(--secondary-lavender-dark);
+    box-shadow: var(--shadow-md);
+    overflow-y: auto;
+    z-index: 100;
+}
+
+.saved-schedules-section h3 {
+    margin: 0 0 var(--space-4) 0;
+    text-align: center;
+    color: var(--primary-purple-dark);
+    font-size: var(--text-lg);
+}
+
+.schedule-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+}
+
+.schedule-name-input {
+    width: 100%;
+    padding: var(--space-2);
+    border: 2px solid var(--secondary-lavender-dark);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    box-sizing: border-box;
+}
+
+.schedule-name-input:focus {
+    outline: none;
+    border-color: var(--primary-purple-light);
+}
+
+.saved-schedules-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    width: 100%;
+}
+
+.saved-schedule-card {
+    position: relative;
+    padding: var(--space-3);
+    background: var(--neutral-white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.saved-schedule-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.saved-schedule-card h4 {
+    margin: 0 0 var(--space-2) 0;
+    font-size: var(--text-sm);
+    color: var(--primary-purple-dark);
+    padding-right: 25px; /* Space for priority badge */
+}
+
+.saved-schedule-card p {
+    margin: var(--space-1) 0;
+    font-size: var(--text-xs);
+    color: var(--neutral-gray-500);
+}
+
+.priority-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: var(--primary-purple-light);
+    color: var(--neutral-white);
+    border-radius: var(--radius-full);
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--text-xs);
+    font-weight: var(--font-semibold);
+}
+
+.priority-controls {
+    display: flex;
+    gap: var(--space-1);
+    margin-top: var(--space-2);
+    justify-content: center;
+}
+
+.priority-btn {
+    padding: var(--space-1) var(--space-2);
+    border: none;
+    background: var(--secondary-lavender-dark);
+    color: var(--primary-purple-dark);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-size: var(--text-xs);
+}
+
+.priority-btn:hover {
+    background: var(--primary-purple-light);
+    color: var(--neutral-white);
+}
+
+/* Modal Styles */
+.schedule-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: var(--z-modal);
+}
+
+.schedule-modal-content {
+    position: relative;
+    background: var(--neutral-white);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    min-width: 300px;
+    max-width: 400px;
+    box-shadow: var(--shadow-xl);
+    transition: all var(--transition-normal);
+}
+
+.modal-close {
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-3);
+    background: none;
+    border: none;
+    font-size: var(--text-lg);
+    cursor: pointer;
+    color: var(--neutral-gray-500);
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close:hover {
+    background: var(--neutral-gray-100);
+    border-radius: var(--radius-full);
+}
+
+.modal-schedule-preview h2 {
+    margin: 0 0 var(--space-4) 0;
+    color: var(--primary-purple-dark);
+    font-size: var(--text-xl);
+}
+
+.preview-stats p {
+    margin: var(--space-2) 0;
+    color: var(--neutral-gray-600);
+    font-size: var(--text-sm);
+}
+
+.modal-course-item {
+    padding: var(--space-2);
+    background: var(--neutral-white);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--secondary-lavender);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+}
+
+.modal-course-item:hover {
+    background: var(--secondary-lavender-light);
+    border-color: var(--secondary-lavender-dark);
+}
+
+.modal-course-name {
+    color: var(--primary-purple-dark);
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
+    text-align: center;
+}
+
+.load-schedule-btn {
+    background: linear-gradient(90deg, var(--primary-purple-light), var(--primary-purple-subtle));
+    color: var(--neutral-white);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    border: none;
+    font-weight: var(--font-semibold);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-size: var(--text-sm);
+    display: flex;
+    margin: var(--space-4) auto 0;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    min-width: 120px;
+}
+
+.load-schedule-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Adjust main content to accommodate right sidebar */
+.scheduler-container {
+    padding-right: 280px; /* Make space for the right sidebar */
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 1400px) {
+    .saved-schedules-section {
+        position: relative;
+        height: auto;
+        width: 100%;
+        margin-top: var(--space-8);
+    }
+    
+    .scheduler-container {
+        padding-right: var(--space-5);
+    }
+    
+    .saved-schedules-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: var(--space-4);
+    }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .scheduler-container {
+    flex-direction: column;
+    padding: var(--space-4);
+    gap: var(--space-4);
+  }
+  
+  .courses-sidebar {
+    flex: none;
+    width: 100%;
+  }
+  
+  .schedule-area {
+    flex: none;
+    width: 100%;
+  }
+  
+  .schedule-grid {
+    max-height: 300px;
+  }
+  
+  .saved-schedules-section {
+    position: relative;
+    width: 100%;
+    height: auto;
+    margin-top: var(--space-4);
+  }
+  
+  .scheduler-container {
+    padding-right: var(--space-4);
+  }
 }
 
 .scheduler-container {
@@ -326,6 +1057,7 @@
   border: 2px dashed #a68fb5;
 }
 
+
 .scheduled-course {
   background: linear-gradient(135deg, #a68fb5, #c3b0d5);
   color: white;
@@ -339,20 +1071,47 @@
   cursor: pointer;
 }
 
+.scheduled-course .course-instructor {
+  font-size: var(--text-xs);
+  color: #9ca3af;
+}
+
 .scheduled-course:hover {
   opacity: 0.9;
 }
 
+/* Category-specific themes (match sidebar colors) */
+.scheduled-course.core {
+  background: linear-gradient(135deg, #c3b4f3, #e3d9ff);
+  border: 2px solid #9d7af5;
+  color: #2c1365;
+}
+
+.scheduled-course.elective {
+  background: linear-gradient(135deg, #9fd8df, #c8f1f5);
+  border: 2px solid #6bbbc6;
+  color: #043f44;
+}
+
+.scheduled-course.gened {
+  background: linear-gradient(135deg, #66f99e, #7eebad);
+  border: 2px solid #79e37a;
+  color: #5e2a00;
+}
+
+
 .scheduled-course .course-code {
-  color: white;
-  font-size: 0.9rem;
-  font-weight: 700;
+  color: var(--neutral-white);
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
 }
 
 .scheduled-course .course-name {
   color: rgba(255, 255, 255, 0.9);
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
 }
+
+
 
 .remove-course {
   position: absolute;
@@ -468,144 +1227,7 @@
   background-color: #f0f0f0;
 }
 
-.navbar {
-.courses-sidebar:last-child {
-  flex-grow: 1;            
-}
-
-.transcript-row {
-  display: flex;
-  align-items: center;
-  flex-direction: row;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.upload-text {
-  font-size: 0.9rem;
-  color: #6b5b7a;
-}
-
-.sidebar-layout {
-  display: flex;
-  flex-direction: column;
-  gap: 1.2rem;    
-  height: 100vh;
-}
-
-.top-sidebar {
-  flex-shrink: 0;
-}
-
-
-.syllabus-link {
-  color: #007bff;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.syllabus-link:hover {
-  text-decoration: underline;
-}
-
-.tooltip-content {
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-
-
-/* Info Card Modal Styles */
-.info-card-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  background: #ffffffcc;
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.07);
-  padding: 0.75rem 2.5rem;
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  box-sizing: border-box;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-}
-
-/* left section (logo area) */
-.navbar-left {
-  display: flex;
-  align-items: center;
-}
-
-/* PLAN-A-GATOR LOGO */
-.navbar-logo {
-  font-size: 1.4rem;
-  font-weight: 700;
-  text-decoration: none;
-  color: #4b3a73;
-  opacity: 1 !important;
-  visibility: visible;
-}
-
-.navbar-logo:visited {
-  color: #4b3a73;
-}
-
-.navbar-logo:hover {
-  color: #6b56a8;
-}
-
-/* right section */
-.navbar-right {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-right: 1rem;
-}
-
-/* call-to-action buttons */
-.navbar-cta {
-  font-size: 0.85rem;
-  font-weight: 500;
-  line-height: 1;
-  text-decoration: none;
-  border-radius: 0.6rem;
-  padding: 0.5rem 0.8rem;
-  border: 1px solid transparent;
-  cursor: pointer;
-  transition: box-shadow 0.15s ease, background-color 0.15s ease,
-    border-color 0.15s ease, color 0.15s ease;
-    white-space: nowrap;
-}
-
-.navbar-cta.primary {
-  background-color: #6b56a8;
-  color: #fff;
-  box-shadow: 0 6px 20px rgba(107, 86, 168, 0.25);
-}
-
-.navbar-cta.primary:hover {
-  filter: brightness(1.05);
-  box-shadow: 0 8px 24px rgba(107, 86, 168, 0.35);
-}
-
-.page-content{
-  padding-top: 3.5rem;
-  min-height: 100vh;
-  height: auto;
-}
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  padding: 20px;
-}
+/* Remove conflicting navbar styles - these are now handled by design-system.css */
 
 .info-card-modal {
   background: white;

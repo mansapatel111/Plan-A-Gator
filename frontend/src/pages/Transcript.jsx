@@ -1,7 +1,8 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as pdfjsLib from "pdfjs-dist";
 import pdfjsWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
+import { Button, Card, CardBody, Input, Select, Container, Section, Alert, LoadingSpinner } from "../components/UIComponents";
 import "./Transcript.css";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
@@ -10,185 +11,229 @@ export default function Transcript() {
   const navigate = useNavigate();
   const [file, setFile] = useState(null);
   const [classes, setClasses] = useState([]);
-  const [grade, setGrade] = useState("");
-  const [college, setCollege] = useState("");
-
-  const [errors, setErrors] = useState({
+  const [formData, setFormData] = useState({
     grade: "",
-    college: "",
-    file: "",
+    college: ""
   });
+  const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
-    setErrors((prev) => ({ ...prev, file: "" }));
+    setErrors(prev => ({ ...prev, file: "" }));
   };
 
-  const handleParse = async () => {
-    let newErrors = { grade: "", college: "", file: "" };
-    let hasError = false;
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    setErrors(prev => ({ ...prev, [name]: "" }));
+  };
 
-    if (!grade) {
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!formData.grade) {
       newErrors.grade = "Please select your grade level.";
-      hasError = true;
     }
-    if (!college) {
+    if (!formData.college) {
       newErrors.college = "Please select your college.";
-      hasError = true;
     }
     if (!file) {
       newErrors.file = "Please upload your transcript (PDF).";
-      hasError = true;
     }
-
+    
     setErrors(newErrors);
-  if (hasError) return null;
+    return Object.keys(newErrors).length === 0;
+  };
 
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const handleParse = async () => {
+    if (!validateForm()) return null;
 
-    let fullText = "";
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const content = await page.getTextContent();
-      const text = content.items.map((item) => item.str).join(" ");
-      fullText += text + "\n";
+    setIsLoading(true);
+    
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+      let fullText = "";
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        const text = content.items.map((item) => item.str).join(" ");
+        fullText += text + "\n";
+      }
+
+      const courseRegex = /\b[A-Z]{3}\s?\d{4}[A-Z]?\b/g;
+      const matches = fullText.match(courseRegex) || [];
+      const unique = [...new Set(matches)];
+      setClasses(unique);
+      return unique;
+    } catch (error) {
+      setErrors({ general: "Error parsing PDF. Please try again." });
+      return null;
+    } finally {
+      setIsLoading(false);
     }
-
-    const courseRegex = /\b[A-Z]{3}\s?\d{4}[A-Z]?\b/g;
-    const matches = fullText.match(courseRegex) || [];
-    const unique = [...new Set(matches)];
-    setClasses(unique);
-    return unique;
   };
 
   const handleParseAndSave = async () => {
-    console.log('Starting parse+save');
     const parsed = await handleParse();
-    console.log('Parsed result:', parsed);
-    if (parsed === null) return; // validation failed
-    if (parsed && parsed.length > 0) {
-        localStorage.setItem('parsed_classes', parsed.join(','));
-    }
-
-    if (Array.isArray(parsed) && parsed.length === 0) {
-      alert('No courses found in transcript');
+    if (parsed === null) return;
+    
+    if (parsed.length === 0) {
+      setErrors({ general: 'No courses found in transcript' });
       return;
     }
+    
     const user_id = localStorage.getItem("user_id");
     if (!user_id) {
-      alert('No user_id found — please sign in or sign up first');
+      setErrors({ general: 'No user_id found — please sign in or sign up first' });
       return;
     }
-    // localStorage.setItem("user_id", data.user_id);
+    
+    localStorage.setItem('parsed_classes', parsed.join(','));
     navigate('/scheduler');
 
-    // normalize parsed codes client-side too (trim spaces + uppercase)
+    // Normalize parsed codes client-side
     const normalized = parsed.map((s) => (s || '').toString().replace(/\s+/g, '').toUpperCase()).filter(Boolean);
-    console.log('Sending normalized classes:', normalized);
-    const res = await fetch("http://127.0.0.1:5000/update-user-info", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user_id, grade, college }),
-    });
-  //   try {
-  //     const res2 = await fetch("http://127.0.0.1:5000/save-transcript", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({ user_id, classes: normalized }),
-  //     });
-
-  //     const data = await res.json();
-  //     const data2 = await res2.json();
-  //     console.log('update-user-info response', res.ok, data);
-  //     console.log('save-transcript response', res2.ok, data2);
-
-  //     if (res.ok && res2.ok) {
-  //       alert(data.message || data2.message || 'User info and transcript saved');
-  //       // navigate to scheduler so the user can build schedules
-  //       navigate('/scheduler');
-  //     } else if (res.ok && !res2.ok) {
-  //       alert(data2.error || data2.details || 'Transcript save failed');
-  //     } else if (!res.ok && res2.ok) {
-  //       alert(data.error || data.details || 'User info save failed');
-  //     } else {
-  //       alert((data.error || data.message) + ' & ' + (data2.error || data2.message) || 'Both saves failed');
-  //     }
-  //   } catch (err) {
-  //     console.error('Network or server error', err);
-  //     alert('Network or server error: ' + err.message);
-  //   }
+    
+    try {
+      const res = await fetch("http://127.0.0.1:5000/update-user-info", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id, grade: formData.grade, college: formData.college }),
+      });
+      
+      if (!res.ok) {
+        setErrors({ general: 'Failed to save user information' });
+      }
+    } catch (error) {
+      setErrors({ general: 'Network error. Please try again.' });
+    }
   };
+
+  const gradeOptions = [
+    { value: "", label: "Select grade" },
+    { value: "Freshman", label: "Freshman" },
+    { value: "Sophomore", label: "Sophomore" },
+    { value: "Junior", label: "Junior" },
+    { value: "Senior", label: "Senior" }
+  ];
+
+  const collegeOptions = [
+    { value: "", label: "Select college" },
+    { value: "CLAS", label: "College of Liberal Arts & Sciences" },
+    { value: "ENG", label: "College of Engineering" }
+  ];
 
   return (
     <div className="transcript-page">
-      <div className="transcript-card">
-        <h1>Upload Transcript</h1>
+      <Container size="md">
+        <Section>
+          <div className="transcript-container">
+            <Card className="transcript-card">
+              <CardBody>
+                <div className="transcript-header">
+                  <h1 className="transcript-title">Upload Transcript</h1>
+                  <p className="transcript-subtitle">
+                    Upload your Florida Shines unofficial transcript to get personalized course recommendations
+                  </p>
+                </div>
 
-        {/* Grade Dropdown */}
-        <label>Grade Level:</label>
-        <select
-          value={grade}
-          onChange={(e) => {
-            setGrade(e.target.value);
-            setErrors((prev) => ({ ...prev, grade: "" }));
-          }}
-        >
-          <option value="">Select grade</option>
-          <option value="Freshman">Freshman</option>
-          <option value="Sophomore">Sophomore</option>
-          <option value="Junior">Junior</option>
-          <option value="Senior">Senior</option>
-        </select>
-        {errors.grade && <p className="error-text">{errors.grade}</p>}
+                <form onSubmit={(e) => { e.preventDefault(); handleParseAndSave(); }} className="transcript-form">
+                  {errors.general && (
+                    <Alert variant="error" className="mb-6">
+                      {errors.general}
+                    </Alert>
+                  )}
 
-        {/* College Dropdown */}
-        <label>College:</label>
-        <select
-          value={college}
-          onChange={(e) => {
-            setCollege(e.target.value);
-            setErrors((prev) => ({ ...prev, college: "" }));
-          }}
-        >
-          <option value="">Select college</option>
-          <option value="CLAS">College of Liberal Arts & Sciences</option>
-          <option value="ENG">College of Engineering</option>
-        </select>
-        {errors.college && <p className="error-text">{errors.college}</p>}
+                  <Select
+                    label="Grade Level"
+                    name="grade"
+                    value={formData.grade}
+                    onChange={handleInputChange}
+                    options={gradeOptions}
+                    error={errors.grade}
+                    required
+                  />
 
-        {/* PDF Upload */}
-        <label>Transcript PDF:</label>
-        <input type="file" accept="application/pdf" onChange={handleFileChange} />
-        {errors.file && <p className="error-text">{errors.file}</p>}
+                  <Select
+                    label="College"
+                    name="college"
+                    value={formData.college}
+                    onChange={handleInputChange}
+                    options={collegeOptions}
+                    error={errors.college}
+                    required
+                  />
 
-        {/* Parse Button */}
-        <button onClick={handleParseAndSave}>Parse Transcript</button>
+                  <div className="form-group">
+                    <label className="form-label">Transcript PDF</label>
+                    <input
+                      type="file"
+                      accept="application/pdf"
+                      onChange={handleFileChange}
+                      className="form-input"
+                      required
+                    />
+                    {errors.file && <div className="form-error">{errors.file}</div>}
+                    <div className="form-help">
+                      Upload your Florida Shines printable unofficial transcript
+                    </div>
+                  </div>
 
-        {/* Extracted Courses */}
-        {classes.length > 0 && (
-          <>
-            <h2>Extracted Courses</h2>
-            <ul>
-              {classes.map((cls, i) => (
-                <li key={i}>{cls}</li>
-              ))}
-            </ul>
-          </>
-        )}
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="lg"
+                    disabled={isLoading}
+                    className="w-full"
+                  >
+                    {isLoading ? (
+                      <>
+                        <LoadingSpinner size="sm" />
+                        Parsing Transcript...
+                      </>
+                    ) : (
+                      'Parse Transcript'
+                    )}
+                  </Button>
+                </form>
 
-        {/* Help Link */}
-        <p className="help-text">
-          Need help downloading your transcript?{" "}
-          <a
-            href="https://www.floridashines.org/check-your-progress" 
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Click here!
-          </a>
-        </p>
-      </div>
+                {classes.length > 0 && (
+                  <div className="extracted-courses">
+                    <h2 className="courses-title">Extracted Courses</h2>
+                    <div className="courses-grid">
+                      {classes.map((cls, i) => (
+                        <div key={i} className="course-badge">
+                          {cls}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="transcript-footer">
+                  <p className="help-text">
+                    Need help downloading your transcript?{" "}
+                    <a
+                      href="https://www.floridashines.org/check-your-progress" 
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary"
+                    >
+                      Click here!
+                    </a>
+                  </p>
+                </div>
+              </CardBody>
+            </Card>
+          </div>
+        </Section>
+      </Container>
     </div>
   );
 }
