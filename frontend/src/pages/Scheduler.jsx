@@ -221,6 +221,7 @@ export default function Scheduler() {
 
   const handleRemoveCourse = (courseCode, e) => {
     e.stopPropagation();
+    e.preventDefault();
     const newSchedule = { ...schedule };
     Object.keys(newSchedule).forEach(key => {
       if (newSchedule[key].code === courseCode) {
