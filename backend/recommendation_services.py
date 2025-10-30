@@ -10,54 +10,60 @@ handles single courses and choice like if u can take either ENC 2256 or ENC 3246
 
 # get all courses for college and category
 def courses_eligible(user_codes_set, college: str, category: str) -> List[str]:
-    # Debug print statements
     print(f"\nDEBUG: courses_eligible")
     print(f"College: {college}")
     print(f"Category: {category}")
     print(f"User completed courses: {user_codes_set}")
-    
-    # Get courses from REQUIREMENTS
+
     records = REQUIREMENTS.get(college, {}).get(category, [])
     print(f"All possible courses from REQUIREMENTS: {records}")
-    
+
     if not records:
         print(f"WARNING: No courses found for {college} - {category}")
         return []
 
     remaining: List[str] = []
-    
+
     for course in records:
-        if isinstance(course, list): 
+        # --- OR GROUP ---
+        if isinstance(course, list):
             print(f"Checking OR group: {course}")
 
-            def course_satisfied(option: str) -> bool:
-                if "|" in option:
-                    parts = [p.replace(" ", "").upper() for p in option.split("|")]
-                    return all(p in user_codes_set for p in parts)
-                return option.replace(" ", "").upper() in user_codes_set
-            
-            if not any(course_satisfied(opt) for opt in course):
-                added_opts = []
-                for opt in course:
-                    if "|" in opt:
-                        parts = [p.replace(" ", "").upper() for p in opt.split("|")]
-                        remaining.extend(parts)
-                        added_opts.append(parts)
-                    else:
-                        code = opt.replace(" ", "").upper()
-                        remaining.append(code)
-                        added_opts.append(code)
-                print(f"Added OR options {added_opts}")
+            # If user has taken ANY course in this group → skip
+            if any(opt.replace(" ", "").upper() in user_codes_set for opt in course):
+                print(f"✓ Satisfied OR group: {course}")
+                continue
+
+            # Otherwise add all options (or one default option)
+            added_opts = []
+            for opt in course:
+                if "|" in opt:  # handle combined like "PHY2048|PHY2048L"
+                    parts = [p.replace(" ", "").upper() for p in opt.split("|")]
+                    # Check if any part already taken
+                    if any(p in user_codes_set for p in parts):
+                        print(f"✓ Satisfied compound OR option: {opt}")
+                        break
+                    remaining.append(parts[0])  # suggest one by default
+                    added_opts.append(parts[0])
+                else:
+                    code = opt.replace(" ", "").upper()
+                    remaining.append(code)
+                    added_opts.append(code)
+            print(f"Added OR options: {added_opts}")
+
+        # --- SINGLE COURSE ---
         else:
             code = course.replace(" ", "").upper()
             print(f"Checking single course: {code}")
             if code not in user_codes_set:
                 remaining.append(code)
                 print(f"Added course: {code}")
+
     # Remove duplicates while preserving order
     unique_codes = list(dict.fromkeys(remaining))
     print(f"Final available courses: {unique_codes}")
     return unique_codes
+
 
 '''
 recommendation service, first checks if category is provided
