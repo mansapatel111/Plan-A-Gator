@@ -30,7 +30,8 @@
   overflow-y: visible;
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);        
+  gap: var(--space-4);    
+  min-width: 25vw;    
 }
 
 .courses-sidebar:last-child {
@@ -239,7 +240,7 @@
   overflow: auto;
   display: flex;
   flex-direction: column;
-  min-width: 65vw;
+  min-width: 57vw;
 }
 
 .schedule-header {
