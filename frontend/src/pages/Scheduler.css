@@ -2,20 +2,22 @@
 
 .scheduler-page {
   min-height: 100vh;
-  width: 100vw;
+  width: 100%;
   display: flex;
   background: linear-gradient(135deg, var(--secondary-lavender-light), var(--neutral-white));
   font-family: var(--font-family-primary);
   overflow: visible;
+  justify-content: center;
 }
 
 .scheduler-container {
   display: flex;
-  width: 100%;
+  width: 100vw;
   height: auto;
   padding: var(--space-6);
   gap: var(--space-6);
   box-sizing: border-box;
+  flex-direction: row;
 }
 
 /* Left Sidebar - Course Categories */
@@ -28,7 +30,11 @@
   overflow-y: visible;
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);         
+  gap: var(--space-4);        
+}
+
+.courses-sidebar:last-child {
+  flex-grow: 1; 
 }
 
 .courses-sidebar h2 {
@@ -233,6 +239,7 @@
   overflow: auto;
   display: flex;
   flex-direction: column;
+  min-width: 65vw;
 }
 
 .schedule-header {
@@ -461,21 +468,7 @@
 
 
 /* Saved Schedules Section - Right Sidebar */
-.saved-schedules-section {
-    position: fixed;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 200px;
-    height: 88vh;
-    padding: var(--space-4);
-    background: linear-gradient(135deg, var(--secondary-lavender), var(--secondary-lavender-light));
-    border-radius: var(--radius-xl);
-    border: 2px solid var(--secondary-lavender-dark);
-    box-shadow: var(--shadow-md);
-    overflow-y: auto;
-    z-index: 100;
-}
+/* Styles intentionally disabled here to avoid duplicate/empty rules; active saved-schedules styles are defined later in the file. */
 
 .saved-schedules-section h3 {
     margin: 0 0 var(--space-4) 0;
@@ -686,12 +679,12 @@
 }
 
 /* Adjust main content to accommodate right sidebar */
-.scheduler-container {
-    padding-right: 280px; /* Make space for the right sidebar */
-}
+/* .scheduler-container {
+    padding-right: 280px; 
+} */
 
 /* Responsive design for smaller screens */
-@media (max-width: 1400px) {
+/* @media (max-width: 1400px) {
     .saved-schedules-section {
         position: relative;
         height: auto;
@@ -708,10 +701,10 @@
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         gap: var(--space-4);
     }
-}
+} */
 
 /* Responsive design */
-@media (max-width: 768px) {
+/* @media (max-width: 768px) {
   .scheduler-container {
     flex-direction: column;
     padding: var(--space-4);
@@ -742,16 +735,16 @@
   .scheduler-container {
     padding-right: var(--space-4);
   }
-}
+} */
 
-.scheduler-container {
+/* .scheduler-container {
   display: flex;
   width: 100%;
   height: auto;
   padding: 2rem;
   gap: 1.5rem;
   box-sizing: border-box;
-}
+} */
 
 /* Left Sidebar - Course Categories */
 .courses-sidebar {
@@ -1435,19 +1428,42 @@
 
 /* Saved Schedules Section - Right Sidebar */
 .saved-schedules-section {
-    position: fixed;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 200px;
-    height: 88vh;
-    padding: 1rem;
+    /* position: absolute; */
+    /* right: 20px; */
+    /* top: 50%; */
+    /* transform: translateX(50%); */
+    min-width: 12vw;
+    /* height: 88vh; */
+    /* padding: 1rem; */
     background: linear-gradient(135deg, #e8dff5, #f3ebff);
     border-radius: 1rem;
     border: 2px solid #d6c6e0;
     box-shadow: 0 4px 12px rgba(166, 143, 181, 0.2);
     overflow-y: auto;
-    z-index: 100;
+    /* z-index: 100; */
+    /* flex: 0 0 350px; */
+  /* background: #ffffff; */
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  overflow-y: auto;
+  /* display: flex; */
+  flex: 1;
+  /* flex-direction: column; */
+  gap: 1rem;  
+}
+
+.saved-schedules-section {
+  background: linear-gradient(135deg, #e8dff5, #f3ebff);
+  border-radius: 1rem;
+  border: 2px solid #d6c6e0;
+  box-shadow: 0 4px 12px rgba(166, 143, 181, 0.2);
+  padding: 1rem;
+  flex: 0.5; /* Take up half a part of available space */
+  overflow-y: auto; /* Allow scrolling if content overflows */
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
 }
 
 .saved-schedules-section h3 {
