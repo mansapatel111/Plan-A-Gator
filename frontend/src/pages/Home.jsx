@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button, Card, CardBody, Container, Section } from "../components/UIComponents";
 import "./Home.css";
 
@@ -31,12 +31,11 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <Section>
-        <Container>
-          <div className="features-grid">
-            <Card className="feature-card">
-              <CardBody>
-                <div className="feature-icon">
+      <section className="features">
+        <h2>What You Can Do</h2>
+        <div className="feature-grid">
+          <div className="feature-card">
+            <div className="feature-icon">
                   <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                     <polyline points="14,2 14,8 20,8"/>
@@ -45,17 +44,14 @@ export default function Home() {
                     <polyline points="10,9 9,9 8,9"/>
                   </svg>
                 </div>
-                <h3 className="feature-title">Transcript–based planning</h3>
-                <p className="feature-desc">
-                  Import the classes you've already taken and we check
-                  requirements you've completed. No spreadsheets. No guessing.
-                </p>
-              </CardBody>
-            </Card>
-
-            <Card className="feature-card">
-              <CardBody>
-                <div className="feature-icon">
+            <h3>Transcript-based Planning</h3>
+            <p>
+                Import the classes you've already taken and we check
+                requirements you've completed. No spreadsheets. No guessing.
+            </p>
+          </div>
+          <div className="feature-card">
+            <div className="feature-icon">
                   <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M9 12l2 2 4-4"/>
                     <path d="M21 12c-1 0-3-1-3-3s2-3 3-3 3 1 3 3-2 3-3 3"/>
@@ -64,17 +60,14 @@ export default function Home() {
                     <path d="M12 21c0-1 1-3 3-3s3 2 3 3-1 3-3 3-3-2-3-3"/>
                   </svg>
                 </div>
-                <h3 className="feature-title">Prereq & conflict checks</h3>
-                <p className="feature-desc">
-                  We warn you if you're missing a prerequisite, or if two classes
-                  overlap in time. Build a clean, valid schedule from the start.
-                </p>
-              </CardBody>
-            </Card>
-
-            <Card className="feature-card">
-              <CardBody>
-                <div className="feature-icon">
+            <h3>Prerequisite and conflict checks</h3>
+            <p>
+            We warn you if you're missing a prerequisite, or if two classes
+            overlap in time. Build a clean, valid schedule from the start.
+            </p>
+          </div>
+          <div className="feature-card">
+            <div className="feature-icon">
                   <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
                     <line x1="16" y1="2" x2="16" y2="6"/>
@@ -82,24 +75,24 @@ export default function Home() {
                     <line x1="3" y1="10" x2="21" y2="10"/>
                   </svg>
                 </div>
-                <h3 className="feature-title">Weekly schedule builder</h3>
-                <p className="feature-desc">
-                  Drag and drop courses into a live weekly view. See your semester
-                  laid out hour by hour and save it for advising or future needs.
-                </p>
-              </CardBody>
-            </Card>
+            <h3>Weekly schedule builder</h3>
+            <p>
+            Drag and drop courses into a live weekly view. See your semester
+            laid out hour by hour and save it for advising or future needs.
+            </p>
           </div>
-        </Container>
-      </Section>
+        </div>
+      </section>
 
       {/* Footer */}
       <footer className="home-footer">
-        <Container>
-          <p className="footer-text">
-            Built by students. Designed for Gators.
+        <div className="footer-content">
+            <p> Built by students. Designed for Gators. </p>
+            <p className="footer-links">
+            <span onClick={() => navigate("/help")}>Help / FAQs</span> |{" "}
+            <span onClick={() => navigate("/signin")}>Login</span>
           </p>
-        </Container>
+        </div>
       </footer>
     </div>
   );
