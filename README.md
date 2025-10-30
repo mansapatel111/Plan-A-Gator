@@ -2,7 +2,7 @@
 
 UF Scheduler is a full-stack web application for UF students to upload transcripts and plan their schedules.  
 
-- **Backend:** Flask API (`backend/`)  
+- **Backend:** Flask API (`backend/`)  + Postgre SQL
 - **Frontend:** React + Vite (`frontend/`)  
 
 ---

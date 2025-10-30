@@ -31,8 +31,6 @@ export default function Scheduler() {
   const times = ["8:30 AM", "9:35 AM", "10:40 AM", "11:45 AM", "12:50 PM", 
                  "1:55 PM", "2:55 PM", "3:55 PM", "4:55 PM", "5:55 PM"];
 
-  
-
   // Helper function to generate random times for courses
   const generateRandomTime = () => {
     const patterns = [
@@ -101,15 +99,15 @@ export default function Scheduler() {
           const formattedCourses = {
             "Core Classes": (data.recommendations.Core || []).map(code => {
               const timeInfo = generateRandomTime();
-              // Fetch course info for each course
               fetchCourseInfo(code);
               return {
                 code,
                 name: `Course ${code}`,
                 credits: 3,
                 instructor: "TBD",
-                timeInfo: timeInfo,
-                time: `${timeInfo.days.map(d => d.slice(0, 2)).join('')} ${timeInfo.startTime}`
+                timeInfo,
+                time: `${timeInfo.days.map(d => d.slice(0, 2)).join('')} ${timeInfo.startTime}`,
+                category: "core"
               };
             }),
             "Technical Electives": (data.recommendations["Elective/eligible"] || []).map(code => {
@@ -120,8 +118,9 @@ export default function Scheduler() {
                 name: `Course ${code}`,
                 credits: 3,
                 instructor: "TBD",
-                timeInfo: timeInfo,
-                time: `${timeInfo.days.map(d => d.slice(0, 2)).join('')} ${timeInfo.startTime}`
+                timeInfo,
+                time: `${timeInfo.days.map(d => d.slice(0, 2)).join('')} ${timeInfo.startTime}`,
+                category: "elective"
               };
             }),
             "General Education": (data.recommendations.GenEd || []).map(code => {
@@ -132,11 +131,13 @@ export default function Scheduler() {
                 name: `Course ${code}`,
                 credits: 3,
                 instructor: "TBD",
-                timeInfo: timeInfo,
-                time: `${timeInfo.days.map(d => d.slice(0, 2)).join('')} ${timeInfo.startTime}`
+                timeInfo,
+                time: `${timeInfo.days.map(d => d.slice(0, 2)).join('')} ${timeInfo.startTime}`,
+                category: "gened"
               };
             })
           };
+
           console.log('Formatted courses:', formattedCourses);
           setCourseCategories(formattedCourses);
         } else {
@@ -148,7 +149,7 @@ export default function Scheduler() {
     };
     
     fetchRecommendations();
-  }, [localStorage.getItem('parsed_classes')]);
+  }, [localStorage.getItem('parsed_classes')]);
 
   const handleDragStart = (course) => {
     setDraggedCourse(course);
@@ -182,13 +183,28 @@ export default function Scheduler() {
   const handleInfoClick = (course, e) => {
     e.stopPropagation();
     e.preventDefault();
-    setActiveInfoCard(course.code);
-    // Fetch course info if not already loaded
-    fetchCourseInfo(course.code);
+    
+    // Toggle the show-tooltip class on the course card
+    const courseCard = e.currentTarget.closest('.course-card');
+    if (courseCard.classList.contains('show-tooltip')) {
+      courseCard.classList.remove('show-tooltip');
+      setActiveInfoCard(null);
+    } else {
+      // Remove show-tooltip from all other cards first
+      document.querySelectorAll('.course-card.show-tooltip').forEach(card => {
+        card.classList.remove('show-tooltip');
+      });
+      courseCard.classList.add('show-tooltip');
+      setActiveInfoCard(course.code);
+      fetchCourseInfo(course.code);
+    }
   };
 
-  const handleCloseInfoCard = (e) => {
+  const handleCloseTooltip = (e) => {
     e.stopPropagation();
+    e.preventDefault();
+    const courseCard = e.currentTarget.closest('.course-card');
+    courseCard.classList.remove('show-tooltip');
     setActiveInfoCard(null);
   };
 
@@ -205,6 +221,7 @@ export default function Scheduler() {
 
   const handleRemoveCourse = (courseCode, e) => {
     e.stopPropagation();
+    e.preventDefault();
     const newSchedule = { ...schedule };
     Object.keys(newSchedule).forEach(key => {
       if (newSchedule[key].code === courseCode) {
@@ -287,39 +304,39 @@ export default function Scheduler() {
         console.error('Error saving schedule:', error);
         alert(`Failed to generate PDF: ${error.message}`);
     }
-};
+  };
 
-const handleScheduleClick = (savedSchedule, event) => {
-    const card = event.currentTarget;
-    const rect = card.getBoundingClientRect();
-    
-    setModalPosition({
-        top: rect.top,
-        left: rect.left
-    });
-    setSelectedSchedule(savedSchedule);
-    setShowModal(true);
-};
+  const handleScheduleClick = (savedSchedule, event) => {
+      const card = event.currentTarget;
+      const rect = card.getBoundingClientRect();
+      
+      setModalPosition({
+          top: rect.top,
+          left: rect.left
+      });
+      setSelectedSchedule(savedSchedule);
+      setShowModal(true);
+  };
 
-const handleLoadSchedule = () => {
-    if (selectedSchedule) {
-        setSchedule(selectedSchedule.schedule);
-        setShowModal(false);
-    }
-};
+  const handleLoadSchedule = () => {
+      if (selectedSchedule) {
+          setSchedule(selectedSchedule.schedule);
+          setShowModal(false);
+      }
+  };
 
-const handlePriorityChange = (scheduleId, direction) => {
-    setSavedSchedules(prev => {
-        const schedules = [...prev];
-        const index = schedules.findIndex(s => s.id === scheduleId);
-        if (direction === 'up' && index > 0) {
-            [schedules[index], schedules[index - 1]] = [schedules[index - 1], schedules[index]];
-        } else if (direction === 'down' && index < schedules.length - 1) {
-            [schedules[index], schedules[index + 1]] = [schedules[index + 1], schedules[index]];
-        }
-        return schedules.map((s, i) => ({ ...s, priority: i + 1 }));
-    });
-};
+  const handlePriorityChange = (scheduleId, direction) => {
+      setSavedSchedules(prev => {
+          const schedules = [...prev];
+          const index = schedules.findIndex(s => s.id === scheduleId);
+          if (direction === 'up' && index > 0) {
+              [schedules[index], schedules[index - 1]] = [schedules[index - 1], schedules[index]];
+          } else if (direction === 'down' && index < schedules.length - 1) {
+              [schedules[index], schedules[index + 1]] = [schedules[index + 1], schedules[index]];
+          }
+          return schedules.map((s, i) => ({ ...s, priority: i + 1 }));
+      });
+  };
 
   const calculateTotalCredits = () => {
     const uniqueCourses = new Set();
@@ -360,26 +377,26 @@ const handlePriorityChange = (scheduleId, direction) => {
 
   const navigate = useNavigate();
   const handleUpdateTranscript = async () => {
-  setCourseCategories({
-    "Core Classes": [],
-    "Technical Electives": [],
-    "General Education": []
-  });
+    setCourseCategories({
+      "Core Classes": [],
+      "Technical Electives": [],
+      "General Education": []
+    });
 
-  setSchedule({});
+    setSchedule({});
 
-  localStorage.removeItem('parsed_classes');
+    localStorage.removeItem('parsed_classes');
 
-  navigate("/transcript");
+    navigate("/transcript");
   }
 
-  return (
-    <div className="scheduler-page">
-      <div className="scheduler-container">
-        {/* Left Sidebar - Available Courses */}
-          <div className="sidebar-layout">
-            <div className="top-sidebar">
-              <div className="courses-sidebar">
+  return (
+    <div className="scheduler-page">
+      <div className="scheduler-container">
+        {/* Left Sidebar - Available Courses */}
+        <div className="sidebar-layout">
+          <div className="top-sidebar">
+            <div className="courses-sidebar">
               <div className="transcript-row">
                 <span className="upload-text">Want to upload a new transcript?</span>
                 <button className="btn-transcript" onClick={handleUpdateTranscript}>
@@ -387,85 +404,162 @@ const handlePriorityChange = (scheduleId, direction) => {
                 </button>
               </div>
             </div>
+          </div>
+          <div className="courses-sidebar">
+            <h2>Available Courses</h2>  
+            <div className="search-bar">
+              <input
+                type="text"
+                placeholder="Search courses..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
-            <div className="courses-sidebar">
-            <h2>Available Courses</h2>  
-            <div className="search-bar">
-              <input
-                type="text"
-                placeholder="Search courses..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
 
-            {Object.entries(filteredCategories).map(([category, courses]) => (
-              <div key={category} className="course-category">
-                <div className="category-title">{category}</div>
-                <div className="course-list">
-                  {courses.map((course) => (
-                    <div
-                      key={course.code}
-                      className="course-card"
+            {Object.entries(filteredCategories).map(([category, courses]) => (
+              <div key={category} className="course-category">
+                <div className="category-title">{category}</div>
+                <div className="course-list">
+                  {courses.map((course) => (
+                    <div
+                      key={course.code}
+                      className={`course-card ${category === "Core Classes" 
+                        ? "core" 
+                        : category === "Technical Electives" 
+                        ? "elective" 
+                        : "gened"}`}
                       draggable
                       onDragStart={() => handleDragStart(course)}
                       onClick={() => handleCourseClick(course)}
-                    >
-                      <div className="course-code">
-                        <span>{course.code}</span>
-                        <div 
-                          className="info-icon"
-                          onMouseEnter={(e) => e.stopPropagation()}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          i
-                          <div className="info-tooltip">
-                            <div className="tooltip-title">{course.code}</div>
-                            <div className="tooltip-content">
-                              <div className="tooltip-row">
-                                <span className="tooltip-label">Name: </span>
-                                {course.name}
-                              </div>
-                              <div className="tooltip-row">
-                                <span className="tooltip-label">Credits: </span>
-                                {course.credits}
-                              </div>
-                              <div className="tooltip-row">
-                                <span className="tooltip-label">Instructor: </span>
-                                {course.instructor}
-                              </div>
-                              <div className="tooltip-row">
-                                <span className="tooltip-label">Time: </span>
-                                {course.time}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="course-name">{course.name}</div>
-                      <div className="course-credits">{course.credits} credits • {course.time}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
+                    >
+                      <div className="course-code">
+                        <span>{course.code}</span>
+                        <div
+                          className="info-icon"
+                          onClick={(e) => handleInfoClick(course, e)}
+                        >
+                          i
+                          <div className="info-tooltip" onClick={(e) => e.stopPropagation()}>
+                            <button 
+                              className="tooltip-close"
+                              onClick={(e) => handleCloseTooltip(e)}
+                            >
+                              ×
+                            </button>
+                            <div className="tooltip-title">{course.code}</div>
+                            <div className="tooltip-content">
+                              {loadingCourseInfo.has(course.code) ? (
+                                <div className="loading-info">
+                                  <div className="loading-spinner"></div>
+                                  <div>Loading course information...</div>
+                                </div>
+                              ) : courseInfo[course.code] ? (
+                                <>
+                                  <div className="tooltip-row">
+                                    <span className="tooltip-label">Name: </span>
+                                    <span>{courseInfo[course.code].name}</span>
+                                  </div>
+                                  <div className="tooltip-row">
+                                    <span className="tooltip-label">Credits: </span>
+                                    <span>{courseInfo[course.code].credits}</span>
+                                  </div>
+                                  <div className="tooltip-row">
+                                    <span className="tooltip-label">Grading: </span>
+                                    <span>{courseInfo[course.code].grading_scheme || 'Letter Grade'}</span>
+                                  </div>
+                                  <div className="tooltip-row">
+                                    <span className="tooltip-label">Instructor: </span>
+                                    <span>{courseInfo[course.code].instructor || 'TBD'}</span>
+                                  </div>
+                                  {courseInfo[course.code].rmp_url && (
+                                    <div className="tooltip-row">
+                                      <a
+                                        href={courseInfo[course.code].rmp_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="rmp-link"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        🎓 Rate My Professor →
+                                      </a>
+                                    </div>
+                                  )}
+                                  <div className="tooltip-section">
+                                    <div className="tooltip-label">Description:</div>
+                                    <div className="tooltip-description">
+                                      {courseInfo[course.code].description || 'No description available.'}
+                                    </div>
+                                  </div>
+                                  {courseInfo[course.code].prerequisites && (
+                                    <div className="tooltip-section">
+                                      <div className="tooltip-label">Prerequisites:</div>
+                                      <div className="tooltip-description">
+                                        {courseInfo[course.code].prerequisites}
+                                      </div>
+                                    </div>
+                                  )}
+                                  {courseInfo[course.code].syllabus_url && (
+                                    <div className="tooltip-row">
+                                      <a
+                                        href={courseInfo[course.code].syllabus_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="syllabus-link-small"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                       📄 View Syllabus →
+                                      </a>
+                                    </div>
+                                  )}
+                                </>
+                              ) : (
+                                <>
+                                  <div className="tooltip-row">
+                                    <span className="tooltip-label">Name:</span>
+                                    <span>{course.name}</span>
+                                  </div>
+                                  <div className="tooltip-row">
+                                    <span className="tooltip-label">Credits:</span>
+                                    <span>{course.credits}</span>
+                                  </div>
+                                  <div className="tooltip-row">
+                                    <span className="tooltip-label">Instructor:</span>
+                                    <span>{course.instructor}</span>
+                                  </div>
+                                  <div className="tooltip-row">
+                                    <span className="tooltip-label">Time:</span>
+                                    <span>{course.time}</span>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="course-name">
+                        {courseInfo[course.code]?.name || course.name}
+                      </div>
+                      <div className="course-credits">
+                        {courseInfo[course.code]?.credits || course.credits} credits • {course.time}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
-          
+        </div>
 
-        {/* Right Side - Weekly Schedule */}
-        <div className="schedule-area" ref={scheduleRef}>
-          <div className="schedule-header">
-            <h2>Weekly Schedule</h2>
-            <div className="schedule-actions">
-              <button className="btn-clear" onClick={handleClearSchedule}>
-                Clear Schedule
-              </button>
-{/*               <button className="btn-save" onClick={handleSaveSchedule}>
-                Save Schedule
-              </button> */}
-            </div>
-          </div>
+        {/* Right Side - Weekly Schedule */}
+        <div className="schedule-area" ref={scheduleRef}>
+          <div className="schedule-header">
+            <h2>Weekly Schedule</h2>
+            <div className="schedule-actions">
+              <button className="btn-clear" onClick={handleClearSchedule}>
+                Clear Schedule
+              </button>
+            </div>
+          </div>
 
           <div className="schedule-grid">
             {/* Top-left corner */}
@@ -496,7 +590,17 @@ const handlePriorityChange = (scheduleId, direction) => {
                       onDrop={() => handleDrop(day, time)}
                     >
                       {course && (
-                        <div className="scheduled-course">
+                        <div
+                          className={`scheduled-course ${course.category}`}
+                          style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: `${(course.duration || 1) * 80}px`,
+                            zIndex: 10,
+                          }}
+                        >
                           <button
                             className="remove-course"
                             onClick={(e) => handleRemoveCourse(course.code, e)}
@@ -508,9 +612,7 @@ const handlePriorityChange = (scheduleId, direction) => {
                             <div className="course-name">
                               {courseInfo[course.code]?.name || course.name}
                             </div>
-                            <div className="course-instructor">
-                              {courseInfo[course.code]?.instructor || course.instructor}
-                            </div>
+                            
                           </div>
                         </div>
                       )}
@@ -539,171 +641,92 @@ const handlePriorityChange = (scheduleId, direction) => {
             <div className="total-credits-value">{calculateTotalCredits()} Credits</div>
           </div>
         </div>
+
         {/* Saved Schedules Section */}
         <div className="saved-schedules-section">
-            <h3>Saved Schedules</h3>
-            <div className="schedule-input-group">
-                <input
-                    type="text"
-                    value={scheduleName}
-                    onChange={(e) => setScheduleName(e.target.value)}
-                    placeholder="Enter schedule name..."
-                    className="schedule-name-input"
-                />
-                <button className="btn-save" onClick={handleSaveSchedule}>
-                    Save Current Schedule
-                </button>
-            </div>
-            <div className="saved-schedules-container">
-                {savedSchedules.map((schedule) => (
-                    <div
-                        key={schedule.id}
-                        className="saved-schedule-card"
-                        onClick={(event) => handleScheduleClick(schedule, event)}
-                    >
-                        <div className="priority-badge">#{schedule.priority}</div>
-                        <h4>{schedule.name}</h4>
-                        <p>{schedule.courses} Courses</p>
-                        <p>{schedule.credits} Credits</p>
-                        <div className="priority-controls">
-                            <button
-                                className="priority-btn"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handlePriorityChange(schedule.id, 'up');
-                                }}
-                            >
-                                ↑
-                            </button>
-                            <button
-                                className="priority-btn"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handlePriorityChange(schedule.id, 'down');
-                                }}
-                            >
-                                ↓
-                            </button>
-                        </div>
-                    </div>
-                ))}
-            </div>
+          <h3>Saved Schedules</h3>
+          <div className="schedule-input-group">
+            <input
+              type="text"
+              value={scheduleName}
+              onChange={(e) => setScheduleName(e.target.value)}
+              placeholder="Enter schedule name..."
+              className="schedule-name-input"
+            />
+            <button className="btn-save" onClick={handleSaveSchedule}>
+              Save Current Schedule
+            </button>
+          </div>
+          <div className="saved-schedules-container">
+            {savedSchedules.map((schedule) => (
+              <div
+                key={schedule.id}
+                className="saved-schedule-card"
+                onClick={(event) => handleScheduleClick(schedule, event)}
+              >
+                <div className="priority-badge">#{schedule.priority}</div>
+                <h4>{schedule.name}</h4>
+                <p>{schedule.courses} Courses</p>
+                <p>{schedule.credits} Credits</p>
+                <div className="priority-controls">
+                  <button
+                    className="priority-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePriorityChange(schedule.id, 'up');
+                    }}
+                  >
+                    ↑
+                  </button>
+                  <button
+                    className="priority-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePriorityChange(schedule.id, 'down');
+                    }}
+                  >
+                    ↓
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Schedule Modal */}
         {showModal && selectedSchedule && (
-            <div className="schedule-modal-overlay" onClick={() => setShowModal(false)}>
-                <div 
-                    className="schedule-modal-content" 
-                    onClick={e => e.stopPropagation()}
-                >
-                    <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
-                    <h2>{selectedSchedule.name}</h2>
-                    <div className="modal-schedule-preview">
-                        <div className="preview-stats">
-                            <p>Total Courses: {selectedSchedule.courses}</p>
-                            <p>Total Credits: {selectedSchedule.credits}</p>
-                            
-                            <div className="course-list">
-                                {Object.values(selectedSchedule.schedule)
-                                    .filter((course, index, self) => 
-                                        index === self.findIndex(c => c.code === course.code)
-                                    )
-                                    .map((course, index) => (
-                                        <div key={index} className="modal-course-item">
-                                            <span className="modal-course-name">{course.name}</span>
-                                        </div>
-                                    ))}
-                            </div>
+          <div className="schedule-modal-overlay" onClick={() => setShowModal(false)}>
+            <div 
+              className="schedule-modal-content" 
+              onClick={e => e.stopPropagation()}
+            >
+              <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
+              <h2>{selectedSchedule.name}</h2>
+              <div className="modal-schedule-preview">
+                <div className="preview-stats">
+                  <p>Total Courses: {selectedSchedule.courses}</p>
+                  <p>Total Credits: {selectedSchedule.credits}</p>
+                  
+                  <div className="course-list">
+                    {Object.values(selectedSchedule.schedule)
+                      .filter((course, index, self) => 
+                        index === self.findIndex(c => c.code === course.code)
+                      )
+                      .map((course, index) => (
+                        <div key={index} className="modal-course-item">
+                          <span className="modal-course-name">{course.name}</span>
                         </div>
-                        <button className="load-schedule-btn" onClick={handleLoadSchedule}>
-                            Load This Schedule
-                        </button>
-                    </div>
+                      ))}
+                  </div>
                 </div>
-            </div>
-        )}
-      </div>
-
-      {/* Info Card Modal */}
-      {activeInfoCard && (
-        <div className="info-card-overlay" onClick={handleCloseInfoCard}>
-          <div className="info-card-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="info-card-header">
-              <h3>{activeInfoCard}</h3>
-              <button className="info-card-close" onClick={handleCloseInfoCard}>
-                ×
-              </button>
-            </div>
-            <div className="info-card-content">
-              {courseInfo[activeInfoCard] ? (
-                <>
-                  <div className="info-section">
-                    <div className="info-label">Course Name</div>
-                    <div className="info-value">{courseInfo[activeInfoCard].name}</div>
-                  </div>
-                  
-                  <div className="info-section">
-                    <div className="info-label">Credits</div>
-                    <div className="info-value">{courseInfo[activeInfoCard].credits}</div>
-                  </div>
-                  
-                  <div className="info-section">
-                    <div className="info-label">Grading Scheme</div>
-                    <div className="info-value">{courseInfo[activeInfoCard].grading_scheme || "Letter Grade"}</div>
-                  </div>
-                  
-                  <div className="info-section">
-                    <div className="info-label">Instructor</div>
-                    <div className="info-value">{courseInfo[activeInfoCard].instructor || "TBD"}</div>
-                  </div>
-                  
-                  <div className="info-section">
-                    <div className="info-label">Description</div>
-                    <div className="info-value description">
-                      {courseInfo[activeInfoCard].description || "No description available."}
-                    </div>
-                  </div>
-                  
-                  {courseInfo[activeInfoCard].prerequisites && (
-                    <div className="info-section">
-                      <div className="info-label">Prerequisites</div>
-                      <div className="info-value">
-                        {courseInfo[activeInfoCard].prerequisites}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {courseInfo[activeInfoCard].syllabus_url && (
-                    <div className="info-section">
-                      <div className="info-label">Syllabus</div>
-                      <div className="info-value">
-                        <a 
-                          href={courseInfo[activeInfoCard].syllabus_url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="syllabus-link-large"
-                        >
-                          View Course Syllabus →
-                        </a>
-                      </div>
-                    </div>
-                  )}
-                </>
-              ) : loadingCourseInfo.has(activeInfoCard) ? (
-                <div className="loading-info">
-                  <div className="loading-spinner"></div>
-                  <div>Loading course information...</div>
-                </div>
-              ) : (
-                <div className="info-section">
-                  <div className="info-value">Course information not available.</div>
-                </div>
-              )}
+                <button className="load-schedule-btn" onClick={handleLoadSchedule}>
+                  Load This Schedule
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

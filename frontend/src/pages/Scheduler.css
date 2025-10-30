@@ -2,20 +2,22 @@
 
 .scheduler-page {
   min-height: 100vh;
-  width: 100vw;
+  width: 100%;
   display: flex;
   background: linear-gradient(135deg, var(--secondary-lavender-light), var(--neutral-white));
   font-family: var(--font-family-primary);
   overflow: visible;
+  justify-content: center;
 }
 
 .scheduler-container {
   display: flex;
-  width: 100%;
+  width: 100vw;
   height: auto;
   padding: var(--space-6);
   gap: var(--space-6);
   box-sizing: border-box;
+  flex-direction: row;
 }
 
 /* Left Sidebar - Course Categories */
@@ -25,10 +27,15 @@
   border-radius: var(--radius-2xl);
   padding: var(--space-6);
   box-shadow: var(--shadow-lg);
-  overflow-y: auto;
+  overflow-y: visible;
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);         
+  gap: var(--space-4);    
+  min-width: 25vw;    
+}
+
+.courses-sidebar:last-child {
+  flex-grow: 1; 
 }
 
 .courses-sidebar h2 {
@@ -58,23 +65,47 @@
 }
 
 .course-card {
-  background: linear-gradient(135deg, var(--secondary-lavender), var(--secondary-lavender-light));
-  border: 2px solid var(--secondary-lavender-dark);
   border-radius: var(--radius-lg);
   padding: var(--space-3);
   cursor: grab;
   transition: all var(--transition-fast);
   user-select: none;
   position: relative;
+  overflow: visible;
   z-index: 1;
 }
 
-.course-card:hover {
-  transform: translateX(5px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--primary-purple-light);
-  z-index: 100;
+.course-card.core {
+  background: linear-gradient(135deg, #c3b4f3, #e3d9ff);
+  border: 2px solid #9d7af5;
 }
+
+.course-card.elective {
+  background: linear-gradient(135deg, #9fd8df, #c8f1f5);
+  border: 2px solid #6bbbc6;
+}
+
+.course-card.gened {
+  background: linear-gradient(135deg,#66f99e, #7eebad);
+  border: 2px solid #79e37a;
+}
+
+/* Hover effects */
+.course-card.core:hover {
+  border-color: #b197f5;
+  box-shadow: 0 4px 12px rgba(157, 122, 245, 0.3);
+}
+
+.course-card.elective:hover {
+  border-color: #63c1cd;
+  box-shadow: 0 4px 12px rgba(107, 187, 198, 0.3);
+}
+
+.course-card.gened:hover {
+  border-color: #79e37a;
+  box-shadow: 0 4px 12px rgba(243, 164, 101, 0.3);
+}
+
 
 .course-card:active {
   cursor: grabbing;
@@ -139,11 +170,13 @@
   border: 2px solid var(--primary-purple-light);
   border-radius: var(--radius-lg);
   padding: var(--space-3);
-  min-width: 220px;
-  max-width: 280px;
+  width: 340px;               /* bigger panel */
+  max-width: calc(100vw - 40px);
+  max-height: 420px;  
   box-shadow: var(--shadow-xl);
-  z-index: 1001;
+  z-index: 60;
   opacity: 0;
+  overflow: auto;
   visibility: hidden;
   transition: opacity var(--transition-fast), visibility var(--transition-fast);
   pointer-events: none;
@@ -207,6 +240,7 @@
   overflow: auto;
   display: flex;
   flex-direction: column;
+  min-width: 57vw;
 }
 
 .schedule-header {
@@ -281,42 +315,12 @@
 
 .schedule-cell {
   position: relative;
-  min-height: 20px;
+  height: 80px; /* base slot height */
   transition: background var(--transition-fast);
+  overflow: visible; /* allow overlapping course blocks to show outside */
 }
 
-.schedule-cell.drag-over {
-  background: var(--secondary-lavender-light);
-  border: 2px dashed var(--primary-purple-light);
-}
 
-.scheduled-course {
-  background: linear-gradient(135deg, var(--primary-purple-light), var(--primary-purple-subtle));
-  color: var(--neutral-white);
-  border-radius: var(--radius-md);
-  padding: var(--space-2);
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  position: relative;
-  cursor: pointer;
-}
-
-.scheduled-course:hover {
-  opacity: 0.9;
-}
-
-.scheduled-course .course-code {
-  color: var(--neutral-white);
-  font-size: var(--text-sm);
-  font-weight: var(--font-bold);
-}
-
-.scheduled-course .course-name {
-  color: rgba(255, 255, 255, 0.9);
-  font-size: var(--text-xs);
-}
 
 .remove-course {
   position: absolute;
@@ -463,27 +467,9 @@
   margin-top: 2px;
 }
 
-.scheduled-course .course-instructor {
-  font-size: var(--text-xs);
-  color: #9ca3af;
-}
 
 /* Saved Schedules Section - Right Sidebar */
-.saved-schedules-section {
-    position: fixed;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 200px;
-    height: 88vh;
-    padding: var(--space-4);
-    background: linear-gradient(135deg, var(--secondary-lavender), var(--secondary-lavender-light));
-    border-radius: var(--radius-xl);
-    border: 2px solid var(--secondary-lavender-dark);
-    box-shadow: var(--shadow-md);
-    overflow-y: auto;
-    z-index: 100;
-}
+/* Styles intentionally disabled here to avoid duplicate/empty rules; active saved-schedules styles are defined later in the file. */
 
 .saved-schedules-section h3 {
     margin: 0 0 var(--space-4) 0;
@@ -694,12 +680,12 @@
 }
 
 /* Adjust main content to accommodate right sidebar */
-.scheduler-container {
-    padding-right: 280px; /* Make space for the right sidebar */
-}
+/* .scheduler-container {
+    padding-right: 280px; 
+} */
 
 /* Responsive design for smaller screens */
-@media (max-width: 1400px) {
+/* @media (max-width: 1400px) {
     .saved-schedules-section {
         position: relative;
         height: auto;
@@ -716,10 +702,10 @@
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         gap: var(--space-4);
     }
-}
+} */
 
 /* Responsive design */
-@media (max-width: 768px) {
+/* @media (max-width: 768px) {
   .scheduler-container {
     flex-direction: column;
     padding: var(--space-4);
@@ -750,16 +736,16 @@
   .scheduler-container {
     padding-right: var(--space-4);
   }
-}
+} */
 
-.scheduler-container {
+/* .scheduler-container {
   display: flex;
   width: 100%;
   height: auto;
   padding: 2rem;
   gap: 1.5rem;
   box-sizing: border-box;
-}
+} */
 
 /* Left Sidebar - Course Categories */
 .courses-sidebar {
@@ -809,7 +795,7 @@
   transition: all 0.2s ease;
   user-select: none;
   position: relative;
-  z-index: 1;
+  z-index: 100;
 }
 
 .course-card:hover {
@@ -1068,6 +1054,7 @@
   border: 2px dashed #a68fb5;
 }
 
+
 .scheduled-course {
   background: linear-gradient(135deg, #a68fb5, #c3b0d5);
   color: white;
@@ -1081,38 +1068,64 @@
   cursor: pointer;
 }
 
+
 .scheduled-course:hover {
   opacity: 0.9;
 }
 
+/* Category-specific themes (match sidebar colors) */
+.scheduled-course.core {
+  background: linear-gradient(135deg, #c3b4f3, #e3d9ff);
+  border: 2px solid #9d7af5;
+  color: #2c1365;
+}
+
+.scheduled-course.elective {
+  background: linear-gradient(135deg, #9fd8df, #c8f1f5);
+  border: 2px solid #6bbbc6;
+  color: #043f44;
+}
+
+.scheduled-course.gened {
+  background: linear-gradient(135deg, #66f99e, #7eebad);
+  border: 2px solid #79e37a;
+  color: #5e2a00;
+}
+
+
 .scheduled-course .course-code {
-  color: white;
-  font-size: 0.9rem;
-  font-weight: 700;
+  color: rgba(0, 0, 0, 0.9);
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
 }
 
 .scheduled-course .course-name {
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 0.75rem;
+  color: rgba(0, 0, 0, 0.9);
+  font-size: var(--text-xs);
 }
+
+
 
 .remove-course {
   position: absolute;
-  top: 0.25rem;
-  right: 0.25rem;
-  background: rgba(255, 255, 255, 0.3);
+  top: 2px;
+  right: 2px;
+  background: rgba(255, 255, 255, 0.9);
   border: none;
-  color: white;
   border-radius: 50%;
   width: 20px;
   height: 20px;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  font-size: 0.75rem;
+  color: #333;
+  z-index: 100;
   transition: all 0.2s ease;
 }
+
 
 .remove-course:hover {
   background: rgba(255, 255, 255, 0.5);
@@ -1308,6 +1321,22 @@
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
+.syllabus-link-small {
+  display: inline-block;
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 600;
+  padding: 6px 12px;
+  background: #eff6ff;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.syllabus-link-small:hover {
+  background: #dbeafe;
+  transform: translateX(3px);
+}
+
 .loading-info {
   display: flex;
   flex-direction: column;
@@ -1396,19 +1425,42 @@
 
 /* Saved Schedules Section - Right Sidebar */
 .saved-schedules-section {
-    position: fixed;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 200px;
-    height: 88vh;
-    padding: 1rem;
+    /* position: absolute; */
+    /* right: 20px; */
+    /* top: 50%; */
+    /* transform: translateX(50%); */
+    min-width: 12vw;
+    /* height: 88vh; */
+    /* padding: 1rem; */
     background: linear-gradient(135deg, #e8dff5, #f3ebff);
     border-radius: 1rem;
     border: 2px solid #d6c6e0;
     box-shadow: 0 4px 12px rgba(166, 143, 181, 0.2);
     overflow-y: auto;
-    z-index: 100;
+    /* z-index: 100; */
+    /* flex: 0 0 350px; */
+  /* background: #ffffff; */
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  overflow-y: auto;
+  /* display: flex; */
+  flex: 1;
+  /* flex-direction: column; */
+  gap: 1rem;  
+}
+
+.saved-schedules-section {
+  background: linear-gradient(135deg, #e8dff5, #f3ebff);
+  border-radius: 1rem;
+  border: 2px solid #d6c6e0;
+  box-shadow: 0 4px 12px rgba(166, 143, 181, 0.2);
+  padding: 1rem;
+  flex: 0.5; /* Take up half a part of available space */
+  overflow-y: auto; /* Allow scrolling if content overflows */
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
 }
 
 .saved-schedules-section h3 {
@@ -1647,3 +1699,83 @@
     }
 }
 
+/* Make tooltip stay visible when clicked */
+.course-card.show-tooltip .info-tooltip {
+  display: block;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Close button styling */
+.tooltip-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+  z-index: 10;
+  transition: all 0.2s ease;
+}
+
+.tooltip-close:hover {
+  background: #ff4444;
+  color: white;
+  transform: scale(1.1);
+}
+
+/* Ensure tooltip doesn't close when clicking inside */
+.info-tooltip {
+  pointer-events: none;
+}
+
+.course-card.show-tooltip .info-tooltip {
+  pointer-events: auto;
+}
+
+
+.rmp-link {
+  display: inline-block;
+  color: #ff6b6b;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  background: rgba(255, 107, 107, 0.1);
+  margin-top: 4px;
+}
+
+.rmp-link:hover {
+  background: rgba(255, 107, 107, 0.2);
+  color: #ff5252;
+  transform: translateX(2px);
+}
+
+.syllabus-link-small {
+  display: inline-block;
+  color: #4a90e2;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  background: rgba(74, 144, 226, 0.1);
+  margin-top: 4px;
+}
+
+.syllabus-link-small:hover {
+  background: rgba(74, 144, 226, 0.2);
+  color: #357abd;
+  transform: translateX(2px);
+}
