@@ -451,33 +451,78 @@ const handlePriorityChange = (scheduleId, direction) => {
         >
           <div className="course-code">
             <span>{course.code}</span>
-            <div 
+            <div
               className="info-icon"
-              onMouseEnter={(e) => e.stopPropagation()}
-              onClick={(e) => e.stopPropagation()}
+              onMouseEnter={(e) => {
+                e.stopPropagation();
+                fetchCourseInfo(course.code);
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveInfoCard(course.code);
+                fetchCourseInfo(course.code);
+              }}
             >
               i
               <div className="info-tooltip">
                 <div className="tooltip-title">{course.code}</div>
                 <div className="tooltip-content">
-                  <div className="tooltip-row">
-                    <span className="tooltip-label">Name: </span>{course.name}
-                  </div>
-                  <div className="tooltip-row">
-                    <span className="tooltip-label">Credits: </span>{course.credits}
-                  </div>
-                  <div className="tooltip-row">
-                    <span className="tooltip-label">Instructor: </span>{course.instructor}
-                  </div>
-                  <div className="tooltip-row">
-                    <span className="tooltip-label">Time: </span>{course.time}
-                  </div>
+                  {loadingCourseInfo.has(course.code) ? (
+                    <div className="tooltip-row">Loading...</div>
+                  ) : courseInfo[course.code] ? (
+                    <>
+                      <div className="tooltip-row">
+                        <span className="tooltip-label">Name: </span>{courseInfo[course.code].name}
+                      </div>
+                      <div className="tooltip-row">
+                        <span className="tooltip-label">Credits: </span>{courseInfo[course.code].credits}
+                      </div>
+                      <div className="tooltip-row">
+                        <span className="tooltip-label">Instructor: </span>{courseInfo[course.code].instructor || 'TBD'}
+                      </div>
+                      <div className="tooltip-row">
+                        <span className="tooltip-label">Time: </span>{course.time}
+                      </div>
+                      {courseInfo[course.code].syllabus_url && (
+                        <div className="tooltip-row">
+                          <a
+                            href={courseInfo[course.code].syllabus_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="syllabus-link-small"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            View Syllabus →
+                          </a>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <div className="tooltip-row">
+                        <span className="tooltip-label">Name: </span>{course.name}
+                      </div>
+                      <div className="tooltip-row">
+                        <span className="tooltip-label">Credits: </span>{course.credits}
+                      </div>
+                      <div className="tooltip-row">
+                        <span className="tooltip-label">Instructor: </span>{course.instructor}
+                      </div>
+                      <div className="tooltip-row">
+                        <span className="tooltip-label">Time: </span>{course.time}
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
           </div>
-          <div className="course-name">{course.name}</div>
-          <div className="course-credits">{course.credits} credits • {course.time}</div>
+          <div className="course-name">
+            {courseInfo[course.code]?.name || course.name}
+          </div>
+          <div className="course-credits">
+            {courseInfo[course.code]?.credits || course.credits} credits • {course.time}
+          </div>
         </div>
       ))}
     </div>
