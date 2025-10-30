@@ -1729,3 +1729,40 @@
 .course-card.show-tooltip .info-tooltip {
   pointer-events: auto;
 }
+
+
+.rmp-link {
+  display: inline-block;
+  color: #ff6b6b;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  background: rgba(255, 107, 107, 0.1);
+  margin-top: 4px;
+}
+
+.rmp-link:hover {
+  background: rgba(255, 107, 107, 0.2);
+  color: #ff5252;
+  transform: translateX(2px);
+}
+
+.syllabus-link-small {
+  display: inline-block;
+  color: #4a90e2;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  background: rgba(74, 144, 226, 0.1);
+  margin-top: 4px;
+}
+
+.syllabus-link-small:hover {
+  background: rgba(74, 144, 226, 0.2);
+  color: #357abd;
+  transform: translateX(2px);
+}

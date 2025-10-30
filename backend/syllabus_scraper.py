@@ -150,3 +150,21 @@ def get_syllabus_info(course_code):
         time.sleep(0.3)
     
     return syllabus_info
+
+def get_ratemyprofessor_search_url(professor_name):
+    """Generate Rate My Professor search URL for a professor"""
+    if not professor_name or professor_name == 'TBD':
+        return None
+    
+    # Clean the professor name (remove titles like Dr., Prof., etc.)
+    import re
+    clean_name = re.sub(r'\b(Dr\.|Prof\.|Professor)\b', '', professor_name, flags=re.IGNORECASE).strip()
+    
+    # URL encode the name for search
+    from urllib.parse import quote
+    encoded_name = quote(clean_name)
+    
+    # Rate My Professor search URL for University of Florida
+    # schoolID for UF is 1100
+    return f"https://www.ratemyprofessors.com/search/professors/1100?q={encoded_name}"
+

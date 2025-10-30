@@ -456,21 +456,34 @@ export default function Scheduler() {
                               ) : courseInfo[course.code] ? (
                                 <>
                                   <div className="tooltip-row">
-                                    <span className="tooltip-label">Name:</span>
+                                    <span className="tooltip-label">Name: </span>
                                     <span>{courseInfo[course.code].name}</span>
                                   </div>
                                   <div className="tooltip-row">
-                                    <span className="tooltip-label">Credits:</span>
+                                    <span className="tooltip-label">Credits: </span>
                                     <span>{courseInfo[course.code].credits}</span>
                                   </div>
                                   <div className="tooltip-row">
-                                    <span className="tooltip-label">Grading:</span>
+                                    <span className="tooltip-label">Grading: </span>
                                     <span>{courseInfo[course.code].grading_scheme || 'Letter Grade'}</span>
                                   </div>
                                   <div className="tooltip-row">
-                                    <span className="tooltip-label">Instructor:</span>
+                                    <span className="tooltip-label">Instructor: </span>
                                     <span>{courseInfo[course.code].instructor || 'TBD'}</span>
                                   </div>
+                                  {courseInfo[course.code].rmp_url && (
+                                    <div className="tooltip-row">
+                                      <a
+                                        href={courseInfo[course.code].rmp_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="rmp-link"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        🎓 Rate My Professor →
+                                      </a>
+                                    </div>
+                                  )}
                                   <div className="tooltip-section">
                                     <div className="tooltip-label">Description:</div>
                                     <div className="tooltip-description">
@@ -494,7 +507,7 @@ export default function Scheduler() {
                                         className="syllabus-link-small"
                                         onClick={(e) => e.stopPropagation()}
                                       >
-                                        View Syllabus →
+                                       📄 View Syllabus →
                                       </a>
                                     </div>
                                   )}

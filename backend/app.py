@@ -203,6 +203,9 @@ def update_user_info():
 def get_course_info_endpoint(course_code):
     try:
         course_info = get_course_info(course_code)
+        if course_info.get('instructor'):
+            from syllabus_scraper import get_ratemyprofessor_search_url
+            course_info['rmp_url'] = get_ratemyprofessor_search_url(course_info['instructor'])
         
         return jsonify({
             'success': True,
@@ -220,9 +223,12 @@ def get_course_info_endpoint(course_code):
                 'credits': 3,
                 'description': "Course information temporarily unavailable.",
                 'prerequisites': "Check with academic advisor",
-                'syllabus_url': None
+                'syllabus_url': None,
+                'rpm_url': None
             }
         })
+    
+
     
 if __name__ == "__main__":
     app.run(debug=os.getenv("DEBUG", "False") == "True")
