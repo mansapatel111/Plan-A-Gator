@@ -134,7 +134,6 @@ export default function Transcript() {
         localStorage.setItem('parsed_classes', parsed.join(','));
         navigate('/scheduler');
       } else {
-        alert(`✓ Successfully saved ${saveData.saved_count} courses to your profile!`);
         localStorage.setItem('parsed_classes', parsed.join(','));
         navigate('/scheduler');
       }
