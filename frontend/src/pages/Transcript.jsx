@@ -18,9 +18,15 @@ export default function Transcript() {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
-    setErrors(prev => ({ ...prev, file: "" }));
+  const handleFileChange = (event) => {
+    const selectedFile = event.target.files[0];
+    if (selectedFile) {
+      if (selectedFile.type === 'application/pdf') {
+        setFile(selectedFile);
+      } else {
+        setFile(null);
+      }
+    }
   };
 
   const handleInputChange = (e) => {
@@ -93,9 +99,6 @@ export default function Transcript() {
       setErrors({ general: 'No user_id found — please sign in or sign up first' });
       return;
     }
-    
-    localStorage.setItem('parsed_classes', parsed.join(','));
-    navigate('/scheduler');
 
     // Normalize parsed codes client-side
     const normalized = parsed.map((s) => (s || '').toString().replace(/\s+/g, '').toUpperCase()).filter(Boolean);
@@ -110,8 +113,36 @@ export default function Transcript() {
       if (!res.ok) {
         setErrors({ general: 'Failed to save user information' });
       }
+
+      const saveResponse = await fetch('http://127.0.0.1:5000/save-transcript', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: parseInt(user_id),
+          classes: parsed  
+        })
+      });
+
+      const saveData = await saveResponse.json();
+      
+      if (!saveResponse.ok) {
+        console.error('ERROR - Failed to save transcript:', saveData);
+        setErrors({ general: `Failed to save courses: ${saveData.error}` });
+        // Still navigate but show error
+        localStorage.setItem('parsed_classes', parsed.join(','));
+        navigate('/scheduler');
+      } else {
+        alert(`✓ Successfully saved ${saveData.saved_count} courses to your profile!`);
+        localStorage.setItem('parsed_classes', parsed.join(','));
+        navigate('/scheduler');
+      }
+
     } catch (error) {
       setErrors({ general: 'Network error. Please try again.' });
+      localStorage.setItem('parsed_classes', parsed.join(','));
+      alert('Network error. Courses saved locally only.');
     }
   };
 
