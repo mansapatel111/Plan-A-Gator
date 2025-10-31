@@ -75,7 +75,7 @@ def recommend_courses(
         college: str, 
         transcipt_codes: List[str], 
         category: str | None = None, 
-        per_category_limit: int = 2, 
+        per_category_limit: int = 10, 
         category_limit: int = 4,
     ) -> Union[List[str], Dict[str, List[str]]]:
     

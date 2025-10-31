@@ -80,13 +80,67 @@ export default function Scheduler() {
 
   // Modified useEffect to include course info fetching
   useEffect(() => {
+    const loadSavedSchedules = async () => {
+    try {
+      const user_id = localStorage.getItem('user_id');
+      
+      if (!user_id) {
+        console.log('No user_id, skipping schedule load');
+        return;
+      }
+
+      console.log('Loading saved schedules for user:', user_id);
+      
+      const response = await fetch(`http://127.0.0.1:5000/get-user-schedules/${user_id}`);
+      const data = await response.json();
+      
+      console.log('Loaded schedules:', data);
+      
+      if (response.ok && data.schedules) {
+        const transformedSchedules = data.schedules.map((schedule, index) => ({
+          id: schedule.id,
+          name: schedule.name,
+          schedule: schedule.schedule,
+          credits: schedule.credits,
+          courses: schedule.courses,
+          priority: index + 1
+        }));
+        
+        setSavedSchedules(transformedSchedules);
+        console.log(`Loaded ${transformedSchedules.length} saved schedules`);
+      }
+    } catch (error) {
+      console.error('Error loading saved schedules:', error);
+    }
+  };
+    loadSavedSchedules();
+
+
     const fetchRecommendations = async () => {
       try {
         const user_id = localStorage.getItem('user_id');
-        const classes = localStorage.getItem('parsed_classes') || '';
+        // const classes = localStorage.getItem('parsed_classes') || '';
         console.log('Fetching recommendations for user:', user_id);
+
+        console.log('Fetching completed courses from database for user:', user_id);
+      
+        // Step 1: Get completed courses from database
+        const completedResponse = await fetch(`http://127.0.0.1:5000/get-user-completed-courses/${user_id}`);
         
-        const response = await fetch(`http://127.0.0.1:5000/get-course-recommendations?user_id=${user_id}&classes=${classes}`);
+        if (!completedResponse.ok) {
+          throw new Error('Failed to fetch completed courses');
+        }
+        
+        const completedData = await completedResponse.json();
+        console.log('Completed courses from DB:', completedData);
+        
+        const completedCourses = completedData.completed_courses || [];
+        
+        // Step 2: Get recommendations based on completed courses
+        const classesParam = completedCourses.join(',');
+        console.log('Fetching recommendations with classes:', classesParam);
+
+        const response = await fetch(`http://127.0.0.1:5000/get-course-recommendations?user_id=${user_id}&classes=${classesParam}`);
         const data = await response.json();
         console.log('Received data:', data);
         
@@ -149,31 +203,66 @@ export default function Scheduler() {
     };
     
     fetchRecommendations();
-  }, [localStorage.getItem('parsed_classes')]);
+  }, /* [localStorage.getItem('parsed_classes')] */ []);
 
-  const handleDragStart = (course) => {
-    setDraggedCourse(course);
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-  };
-
-  const addCourseToSchedule = (course) => {
-    const newSchedule = { ...schedule };
-    const { days: courseDays, startTime } = course.timeInfo;
+  const handleDeleteSchedule = async (scheduleId, e) => {
+    e.stopPropagation(); // Prevent opening the modal
     
-    // Find the time index
-    const timeIndex = times.indexOf(startTime);
-    
-    if (timeIndex !== -1) {
-      courseDays.forEach(day => {
-        const key = `${day}-${startTime}`;
-        newSchedule[key] = course;
-      });
-      
-      setSchedule(newSchedule);
+    if (!window.confirm('Are you sure you want to delete this schedule?')) {
+      return;
     }
+
+    try {
+      const user_id = localStorage.getItem('user_id');
+      
+      const response = await fetch(`http://127.0.0.1:5000/delete-schedule/${scheduleId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ user_id: parseInt(user_id) })
+      });
+
+      if (response.ok) {
+        // Remove from local state
+        setSavedSchedules(prev => 
+          prev.filter(s => s.id !== scheduleId)
+            .map((s, i) => ({ ...s, priority: i + 1 }))
+        );
+        alert('Schedule deleted successfully');
+      } else {
+        const data = await response.json();
+        alert(`Failed to delete: ${data.error}`);
+      }
+    } catch (error) {
+      console.error('Error deleting schedule:', error);
+      alert('Failed to delete schedule');
+    }
+  };
+
+    const handleDragStart = (course) => {
+      setDraggedCourse(course);
+    };
+
+    const handleDragOver = (e) => {
+      e.preventDefault();
+    };
+
+    const addCourseToSchedule = (course) => {
+      const newSchedule = { ...schedule };
+      const { days: courseDays, startTime } = course.timeInfo;
+      
+      // Find the time index
+      const timeIndex = times.indexOf(startTime);
+      
+      if (timeIndex !== -1) {
+        courseDays.forEach(day => {
+          const key = `${day}-${startTime}`;
+          newSchedule[key] = course;
+        });
+        
+        setSchedule(newSchedule);
+      }
   };
 
   const handleCourseClick = (course) => {
@@ -242,6 +331,7 @@ export default function Scheduler() {
     }
 
     try {
+      const user_id = localStorage.getItem('user_id');
         // Create canvas from the schedule element
         if (!scheduleRef.current) {
             throw new Error('Schedule element not found');
@@ -286,19 +376,43 @@ export default function Scheduler() {
         pdf.text(`Total Credits: ${calculateTotalCredits()}`, 10, bottomY + 7);
 
         pdf.save(`${scheduleName}-${new Date().toISOString().split('T')[0]}.pdf`);
+        
+        
+        console.log('Saving schedule to database...');
+        const saveResponse = await fetch('http://127.0.0.1:5000/save-schedule', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                user_id: parseInt(user_id),
+                name: scheduleName,
+                schedule: schedule  // The entire schedule object
+            })
+        });
 
-        // Save schedule to state
-        const newSchedule = {
-            id: Date.now(),
-            name: scheduleName,
-            schedule: { ...schedule },
-            credits: calculateTotalCredits(),
-            courses: countUniqueCourses(),
-            priority: savedSchedules.length + 1
-        };
+        const saveData = await saveResponse.json();
+        console.log('Save response:', saveData);
 
-        setSavedSchedules(prev => [...prev, newSchedule]);
-        setScheduleName("");
+        if (saveResponse.ok) {
+            // Add to local state with the database ID
+            const newSchedule = {
+                id: saveData.schedule_id,  // Use database ID
+                name: scheduleName,
+                schedule: { ...schedule },
+                credits: calculateTotalCredits(),
+                courses: countUniqueCourses(),
+                priority: savedSchedules.length + 1
+            };
+
+            setSavedSchedules(prev => [...prev, newSchedule]);
+            setScheduleName("");
+            
+            alert(`✓ Schedule "${scheduleName}" saved successfully!`);
+        } else {
+            console.error('Failed to save to database:', saveData);
+            alert(`Failed to save schedule: ${saveData.error}`);
+        }
 
     } catch (error) {
         console.error('Error saving schedule:', error);
